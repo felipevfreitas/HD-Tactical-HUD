@@ -3,6 +3,7 @@ nosave bool hdrn_enable=true;
 nosave noarchive int hdrn_inspectreq=0;
 nosave bool hdrn_inspectonreload=true;
 nosave bool hdrn_ap_showempty=false;
+nosave bool hdrn_ap_always=false;
 nosave float hdrn_dollscale=1.0;
 nosave bool hdrn_showecg=true;
 nosave bool hdrn_showhpnumber=false;

@@ -79,6 +79,8 @@ extend class HDRNStatusBar{
 	double rn_abat;			//vertical battery bar: -2 = none drawn, -1 = no battery, else 0..1
 	bool rn_anobar;			//no chamber bar (cell weapons)
 	bool rn_aheat;			//rocket launcher: HEAT in the chamber
+	bool rn_aharness;		//BFG strapped to the harness: chamber bar yellow
+	transient cvar rn_apalways;
 	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
 
@@ -156,6 +158,13 @@ extend class HDRNStatusBar{
 		rn_lastatk=atk;
 		rn_wasempty=empty;
 
+		//option: ammo + fire mode always on screen (not the weapon list)
+		if(!rn_apalways)rn_apalways=CVar.FindCVar("hdrn_ap_always");
+		if(built&&rn_apalways&&rn_apalways.GetBool()){
+			rn_aptimer=max(rn_aptimer,1);rn_apalf=1;
+			if(rn_ahasfm){rn_fmtimer=max(rn_fmtimer,1);rn_fmalf=1;}
+		}
+
 		//firing during the fade-out brings it back to full and restarts the fade
 		if(cplayer.cmd.buttons&BT_ATTACK){
 			if(rn_apalf>0)rn_apalf=1;
@@ -210,7 +219,7 @@ extend class HDRNStatusBar{
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
 		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
-		rn_asegs.clear();rn_aqueue.clear();rn_abat=-2;rn_anobar=false;rn_aheat=false;
+		rn_asegs.clear();rn_aqueue.clear();rn_abat=-2;rn_anobar=false;rn_aheat=false;rn_aharness=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -383,7 +392,9 @@ extend class HDRNStatusBar{
 			lcnt=b<0?-1:b;lcap=20;lch=0;ldirty=false;
 			rn_abat=c<0?-1.:clamp(c/20.,0.,1.);
 			if(c>=0)extra++;
-			rn_anobar=true;
+			//chamber bar: lit when there's something to fire, yellow on the harness
+			lch=(b>0||c>0)?2:0;
+			rn_aharness=!!(st&BFGF_STRAPPED);
 			magcls="HDBattery";
 			rn_alabel="$HDRN_AP_CELLS";
 			rn_aempty=b<=0&&c<=0;
@@ -763,6 +774,7 @@ extend class HDRNStatusBar{
 			}else if(!rn_anobar){
 				//jammed: the chamber bar switches white / red like an empty mag
 				color chc=color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235);
+				if(rn_aharness)chc=color(int(255*a*(rn_achamber==2?1.:0.5)),240,200,40);
 				if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
 				fill(chc,x+0.5,icony-1.,6,0.8,fl);
 			}
