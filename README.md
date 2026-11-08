@@ -4,7 +4,7 @@ A minimal, tactical-shooter style HUD for **Hideous Destructor**, plus **Centere
 
 [Português (Brasil)](README.pt-BR.md)
 
-> **Status: 1.0.0, early.** It works and is playable, but the ammo display is going to be **redone from scratch** in a future version: I'm not happy with how it turned out. See [Roadmap](#roadmap).
+> **Status: 1.1.0, work in progress.** The ammo display is being **redone** (new tactical-shooter style panel in the bottom right). See [Roadmap](#roadmap) and the [changelog](CHANGELOG.md).
 
 ## Requirements
 
@@ -13,11 +13,11 @@ A minimal, tactical-shooter style HUD for **Hideous Destructor**, plus **Centere
 
 ## Installation
 
-1. Download `HD-Tactical-HUD-v1.0.0.pk3` from [Releases](../../releases).
+1. Download `HD-Tactical-HUD-v1.1.0.pk3` from [Releases](../../releases).
 2. Load it **after** Hideous Destructor:
 
    ```
-   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.0.0.pk3
+   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.1.0.pk3
    ```
 
 3. Bind the **Inspect ammo** key: *Options → Tactical HUD → Inspect ammo key* (no key is bound by default).

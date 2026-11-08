@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-// Tactical HUD v1.0.0 - tactical-shooter style HUD for Hideous Destructor
+// Tactical HUD v1.1.0 - tactical-shooter style HUD for Hideous Destructor
 //
 // - Paper doll (bottom left) filled from the bottom up according
 //   to health, tinted white -> yellow -> orange -> red.
@@ -337,6 +337,9 @@ class HDRNStatusBar:HDStatusBar{
 		rn_lastmodewep=fmw;
 		if(rn_modeflash>0)rn_modeflash--;
 
+		//new ammo panel visibility
+		RN_PanelTick();
+
 		//compass angle history (for interpolation between tics).
 		//with inertia on, the card behaves like a liquid-damped compass:
 		//a weak pull towards the real heading and a lot of drag, so it
@@ -464,9 +467,9 @@ class HDRNStatusBar:HDStatusBar{
 		RN_DrawAmmoPanel();
 		RN_DrawTopRight();
 
-		//bottom centre
-		so=RN_AddOffset(0,-sm.y);
-		RN_DrawInspect();
+		//ammo panel, bottom right (replaces the old bottom-centre panel)
+		so=RN_AddOffset(-sm.x,-sm.y);
+		RN_DrawAmmoPanel2();
 		screen.SetOffset(so.x,so.y);
 
 		//compass, top centre
@@ -840,7 +843,8 @@ class HDRNStatusBar:HDStatusBar{
 		so=RN_AddOffset(sm.x,-sm.y);
 		//(each one: off / always / only while checking the ammo)
 		double namealf=RN_LabelAlpha(rn_weaponname?rn_weaponname.GetInt():2,false);
-		if(namealf>0){
+		//(not for the ammo panel's weapons: the weapon list shows the name)
+		if(namealf>0&&!RN_PanelWeapon(hdw)){
 			double ax,ay,ex;
 			[ax,ay,ex]=RN_ReadoutAnchor();
 			drawstring(
@@ -849,21 +853,7 @@ class HDRNStatusBar:HDStatusBar{
 				Font.CR_WHITE,0.85*namealf,scale:(0.5,0.5)
 			);
 		}
-		//fire mode, for the weapons whose HD readout we replaced
-		//(changing it always shows it briefly, even in "while checking" mode)
-		if(RN_ReplacesReadout(hdw)){
-			string fm=RN_FireMode(hdw);
-			double fmalf=RN_LabelAlpha(rn_firemodeshow?rn_firemodeshow.GetInt():2,rn_modeflash>0);
-			if(fm!=""&&fmalf>0){
-				double ax,ay,ex;
-				[ax,ay,ex]=RN_ReadoutAnchor();
-				drawstring(
-					pnewsmallfont,fm,
-					(ex,ay-15),DI_SCREEN_LEFT_BOTTOM|DI_TEXT_ALIGN_LEFT,
-					rn_modeflash>0?Font.CR_GOLD:Font.CR_WHITE,fmalf,scale:(0.6,0.6)
-				);
-			}
-		}
+		//(the fire mode is shown by the ammo panel's fire mode column now)
 		screen.SetOffset(so.x,so.y);
 
 		//weapon sprite (bottom right, above the inventory)
@@ -872,7 +862,7 @@ class HDRNStatusBar:HDStatusBar{
 			hudlevel==2
 			||cvar.getcvar("hd_hudsprite",cplayer).getbool()
 			||!cvar.getcvar("r_drawplayersprites",cplayer).getbool()
-		)drawselectedweapon(-8,-46,DI_SCREEN_RIGHT_BOTTOM|DI_ITEM_RIGHT_BOTTOM);
+		)drawselectedweapon(-8,-40,DI_SCREEN_RIGHT_BOTTOM|DI_ITEM_RIGHT_BOTTOM);
 		screen.SetOffset(so.x,so.y);
 	}
 
@@ -895,12 +885,13 @@ class HDRNStatusBar:HDStatusBar{
 
 		if(showinv&&cplayer.mo.invsel){
 			//reuse HD's own inventory selector (with its animation),
-			//shifted from the bottom centre to the bottom right corner
+			//shifted from the bottom centre to the top right corner
 			int mxht=-4-mIndexFont.mFont.GetHeight();
-			vector2 old=RN_AddOffset(sw*0.5-52*hs.x-sm.x,-sm.y);
+			vector2 old=RN_AddOffset(sw*0.5-52*hs.x-sm.x,-(sh-44*hs.y)+sm.y);
 			DrawSurroundingInv(25,-4,42,mxht,DI_SCREEN_CENTER_BOTTOM,0);
 			DrawInvSel(25,-14,42,mxht,DI_SCREEN_CENTER_BOTTOM);
 			screen.SetOffset(old.x,old.y);
+			y=46;
 			//full inventory grid (hold Use) goes in the top right
 			if(hudlevel==2){
 				so=RN_AddOffset(-sm.x,sm.y);
@@ -1483,19 +1474,10 @@ class HDRNStatusBar:HDStatusBar{
 		return "";
 	}
 
-	//weapons whose HD readout is fully replaced by the inspect panel
+	//weapons whose HD readout is fully replaced by the ammo panel
+	//(hand grenades keep HD's readout: it has the throw indicator)
 	bool RN_ReplacesReadout(hdweapon w){
-		if(!w)return false;
-		bool known,dirty;
-		int a,b,c;
-		[known,a,b,c,dirty]=RN_LoadedMag(w);
-		return known
-			||w is "Vulcanette"
-			||w is "BFG9K"
-			||w is "ThunderBuster"
-			||w is "Lumberjack"
-			||w is "Hunter"
-		;
+		return RN_PanelWeapon(w)&&!(w is "HDGrenadeThrower");
 	}
 
 

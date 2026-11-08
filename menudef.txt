@@ -59,7 +59,7 @@ OptionValue "HDRNCompassZoom"
 OptionMenu "HDRNOptions"
 {
 	Title "$HDRN_TITLE"
-	StaticText "v1.0.0", "DarkGray"
+	StaticText "v1.1.0", "DarkGray"
 	Option "$HDRN_ENABLE", "hdrn_enable", "OnOff"
 	StaticText ""
 	StaticText "$HDRN_HDR_AMMO", "Gold"

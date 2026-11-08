@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-// Tactical HUD v1.0.0 - mag check: lower and raise the weapon
+// Tactical HUD v1.1.0 - mag check: lower and raise the weapon
 //
 // When the inspect key is pressed, the weapon drops down like when
 // switching weapons, stays down for a moment, then comes back up.

@@ -4,7 +4,7 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 
 [English](README.md)
 
-> **Status: 1.0.0, versão inicial.** Funciona e dá para jogar, mas a parte de munição vai ser **refeita do zero** numa próxima versão, porque não gostei de como ficou. Veja o [Roadmap](#roadmap).
+> **Status: 1.1.0, em desenvolvimento.** A parte de munição está sendo **refeita** (novo painel no estilo de jogos táticos no canto inferior direito). Veja o [Roadmap](#roadmap) e o [changelog](CHANGELOG.md).
 
 ## Requisitos
 
@@ -13,11 +13,11 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 
 ## Instalação
 
-1. Baixe o `HD-Tactical-HUD-v1.0.0.pk3` em [Releases](../../releases).
+1. Baixe o `HD-Tactical-HUD-v1.1.0.pk3` em [Releases](../../releases).
 2. Carregue **depois** do Hideous Destructor:
 
    ```
-   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.0.0.pk3
+   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.1.0.pk3
    ```
 
 3. Configure a tecla de **inspecionar munição**: *Opções → Tactical HUD → Tecla inspecionar munição*. Ela vem sem tecla.

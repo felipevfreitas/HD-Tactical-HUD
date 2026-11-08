@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.0 — new ammo panel (work in progress)
+
+- **New ammo panel** in the bottom right, inspired by tactical shooters:
+  label (MAGS / SHELLS / GRENADES), up to 3 mags with the one in the gun on
+  the right (bar above it = round chambered), "+" when there are more, total
+  mags; empty mag = dotted outline blinking red; dirty ZM66 mag = red stripes.
+- Shotguns: "reserve | side saddles + in the gun", split chamber bar (live /
+  anything chambered), red number when jammed.
+- Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
+- Fire mode column next to it, with only the weapon's modes.
+- Weapon list above the panel when switching weapons (grenades with their count).
+- Shows instantly on inspect / reload / weapon switch (fire mode change shows
+  only the fire mode column) and fades out; firing keeps it up and brings it
+  back while fading.
+- Inventory selector back in the top right.
+- The old bottom-centre panel is gone. Vulcanette, BFG, Thunder Buster and
+  chainsaw temporarily use HD's own readout again until they get a design.
+  Old inspect-panel options (mag size, numbers, always show...) don't affect
+  the new panel yet.
+
 ## 1.0.0 — first release
 
 - Health paper doll with lost max health, damage flash, armour outline/vest.
