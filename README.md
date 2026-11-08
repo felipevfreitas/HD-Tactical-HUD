@@ -13,11 +13,11 @@ A minimal, tactical-shooter style HUD for **Hideous Destructor**, plus **Centere
 
 ## Installation
 
-1. Download `HD-Tactical-HUD-v1.1.0.pk3` from [Releases](../../releases).
+1. Download `HDTacticalHUD-v1.1.0.pk3` from [Releases](../../releases).
 2. Load it **after** Hideous Destructor:
 
    ```
-   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.1.0.pk3
+   uzdoom -file hd-5.0.1a.pk7 HDTacticalHUD-v1.1.0.pk3
    ```
 
 3. Bind the **Inspect ammo** key: *Options → Tactical HUD → Inspect ammo key* (no key is bound by default).
@@ -81,7 +81,7 @@ Options: *Tactical HUD → Centered Magnified Scopes*. The blur needs OpenGL or 
 The `.pk3` is just a zip of the repository files:
 
 ```
-./build.sh          # creates HD-Tactical-HUD-v<version>.pk3
+./build.sh          # creates HDTacticalHUD-v<version>.pk3
 ```
 
 ## Credits

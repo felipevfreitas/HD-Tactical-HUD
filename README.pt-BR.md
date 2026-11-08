@@ -13,11 +13,11 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 
 ## Instalação
 
-1. Baixe o `HD-Tactical-HUD-v1.1.0.pk3` em [Releases](../../releases).
+1. Baixe o `HDTacticalHUD-v1.1.0.pk3` em [Releases](../../releases).
 2. Carregue **depois** do Hideous Destructor:
 
    ```
-   uzdoom -file hd-5.0.1a.pk7 HD-Tactical-HUD-v1.1.0.pk3
+   uzdoom -file hd-5.0.1a.pk7 HDTacticalHUD-v1.1.0.pk3
    ```
 
 3. Configure a tecla de **inspecionar munição**: *Opções → Tactical HUD → Tecla inspecionar munição*. Ela vem sem tecla.
@@ -81,7 +81,7 @@ Opções: *Tactical HUD → Centered Magnified Scopes*. O borrão precisa de Ope
 O `.pk3` é só um zip dos arquivos do repositório:
 
 ```
-./build.sh          # gera HD-Tactical-HUD-v<versão>.pk3
+./build.sh          # gera HDTacticalHUD-v<versão>.pk3
 ```
 
 ## Créditos
