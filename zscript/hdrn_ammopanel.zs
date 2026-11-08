@@ -26,8 +26,9 @@ extend class HDRNStatusBar{
 		RN_PFADE=10,		//fade-out tics (0.3 s)
 		RN_WLFADEIN=6,		//weapon list fade-in tics (0.17 s), like Insurgency
 		RN_T_LIST=105,		//weapon list after a switch (3 s)
-		RN_T_SWITCH=150,	//ammo + fire mode after a switch / mode change (4.3 s)
-		RN_T_INSPECT=122,	//ammo + fire mode on inspect / reload (3.5 s)
+		RN_T_SWITCH=150,	//ammo + fire mode after a switch (4.3 s)
+		RN_T_INSPECT=122,
+		RN_T_FMONLY=70,		//fire mode column alone after a mode change (2 s)	//ammo + fire mode on inspect / reload (3.5 s)
 
 		RN_FM_NONE=0,
 		RN_FM_SEMI=1,
@@ -98,7 +99,12 @@ extend class HDRNStatusBar{
 
 		//fire mode changed: only the fire mode column
 		//(the status bar sets it to 35 and already counted it down once this tic)
-		if(rn_modeflash==34)RN_PanelShow(0,RN_T_SWITCH,0);
+		if(rn_modeflash==34){
+			//with the whole panel up, it just follows the panel's timing;
+			//on its own it stays RN_T_FMONLY
+			if(rn_aptimer>0){rn_fmtimer=rn_aptimer;rn_fmalf=1;}
+			else RN_PanelShow(0,RN_T_FMONLY,0);
+		}
 
 		//weapon switch: everything. Only a change of the real weapon counts,
 		//so going into a sprint/jump/mantle and back out is ignored
@@ -229,8 +235,9 @@ extend class HDRNStatusBar{
 				:!!(st&LIBF_GRENADELOADED);
 			int res=hpl.countinv("HDRocketAmmo");
 			rn_acur=loaded?1.:-1.;
-			for(int i=0;i<min(2,res);i++)rn_aspare.push(1.);
-			rn_amore=res>2;
+			int gshow=loaded?2:3;
+			for(int i=0;i<min(gshow,res);i++)rn_aspare.push(1.);
+			rn_amore=res+(loaded?1:0)>3;
 			rn_atotal=res+(loaded?1:0);
 			rn_aempty=!loaded;
 			return true;
@@ -254,15 +261,18 @@ extend class HDRNStatusBar{
 			int full=max(1,mm.GetMagHudCount(mm.maxperunit));
 			array<int> cnts;
 			for(int i=0;i<nspare;i++)cnts.push(mm.GetMagHudCount(mm.mags[i]));
-			for(int k=0;k<2&&cnts.size()>0;k++){
+			//up to 3 mags drawn: the one in the gun + 2 spares, or 3 spares
+			//when the gun has no mag (its slot stays as an empty outline)
+			int nshow=lcnt>=0?2:3;
+			for(int k=0;k<nshow&&cnts.size()>0;k++){
 				int bi=0;
 				for(int i=1;i<cnts.size();i++)if(cnts[i]>cnts[bi])bi=i;
 				rn_aspare.push(clamp(cnts[bi]/double(full),0.,1.));
 				cnts.delete(bi);
 			}
 		}
-		rn_amore=nspare>2;
 		rn_atotal=nspare+(lcnt>=0?1:0);
+		rn_amore=rn_atotal>3;
 
 		//fire modes, slots top->bottom
 		if(w is "HDPistol"){
@@ -497,9 +507,13 @@ extend class HDRNStatusBar{
 		}
 
 		//mags (or grenades): total number on the right, icons to its left
-		string tn=FormatNumber(rn_atotal);
-		RN_TextRightAt(tn,rx,numy,numS,Font.CR_WHITE,a,fl);
-		double x=rx-RN_TextW(tn,numS)-4;
+		//(the total and the "+" only when there are more than 3)
+		double x=rx;
+		if(rn_atotal>3){
+			string tn=FormatNumber(rn_atotal);
+			RN_TextRightAt(tn,rx,numy,numS,Font.CR_WHITE,a,fl);
+			x=rx-RN_TextW(tn,numS)-4;
+		}
 		double icony=bottom-pad-13.;		//icon textures are 7x13 units
 
 		//the one in the gun (rightmost) + its chamber bar
