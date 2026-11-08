@@ -23,8 +23,8 @@
   dotted outline). A jammed ZM66 behaves like an empty one: shows on the
   next click and its chamber bar blinks white / red.
 - Vulcanette: feeding mag with the chamber bar split in 5 (one per chamber),
-  the 4 queued mags as a 2x2 block on top of it, battery as a vertical line
-  that dims as it drains; 2100 / 700 rpm in
+  the 4 queued mags as a vertical line cut in 4, battery as a vertical line
+  that dims as it drains, the chamber bar spanning all three; 2100 / 700 rpm in
   the fire mode column.
 - Thunder Buster: battery as the mag (CELLS), detonator / scattershot modes.
   BFG: main battery as the mag, charge battery as a vertical bar,

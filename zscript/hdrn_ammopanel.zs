@@ -725,6 +725,20 @@ extend class HDRNStatusBar{
 			x-=0.6;
 		}
 
+		//queued mags (Vulcanette): a vertical line like the battery's, cut
+		//in 4, between the mag and the battery; the next one to feed at the
+		//bottom (lit = mag there, faint = empty slot)
+		if(rn_aqueue.size()>0){
+			x-=1.4;
+			int nq=min(4,rn_aqueue.size());
+			double sgh=(10.-(nq-1)*0.5)/nq;
+			for(int i=0;i<nq;i++){
+				double sy=icony+1.5+10.-(i+1)*sgh-i*0.5;
+				fill(color(int(255*a*(rn_aqueue[i]>=0?1.:0.22)),235,235,235),x,sy,0.8,sgh,fl);
+			}
+			x-=0.6;
+		}
+
 		//the one in the gun (rightmost) + its chamber bar
 		x-=7;
 		if(rn_akind==RN_AK_GRENADES){
@@ -734,31 +748,13 @@ extend class HDRNStatusBar{
 			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony,6,0.8,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
-			//queued mags (Vulcanette): 2 x 2 small squares on top of the mag,
-			//under the chamber bar; the next one to feed bottom left
 			double cby=icony-1.;
-			if(rn_aqueue.size()>0){
-				double sq=2.,gp=0.5;
-				double qtop=icony+0.6-(sq*2+gp);
-				for(int i=0;i<rn_aqueue.size()&&i<4;i++){
-					int col=i/2,row=1-(i%2);
-					double qx=x+0.5+0.5+col*(sq+gp)+0.25,qyy=qtop+row*(sq+gp);
-					color fc=RN_AmmoFill();
-					if(rn_aqueue[i]>=0)fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),qx,qyy,sq,sq,fl);
-					else{
-						color dc=color(int(255*a*0.3),235,235,235);
-						fill(dc,qx,qyy,sq,0.4,fl);
-						fill(dc,qx,qyy+sq-0.4,sq,0.4,fl);
-						fill(dc,qx,qyy+0.4,0.4,sq-0.8,fl);
-						fill(dc,qx+sq-0.4,qyy+0.4,0.4,sq-0.8,fl);
-					}
-				}
-				cby=qtop-1.2;
-			}
 			if(rn_asegs.size()>0){
 				//one segment per chamber (bright = live, dim = bad round, faint = empty)
+				//(spans the mag, the queue line and the battery)
 				int ns=rn_asegs.size();
-				double sgw=(6.-(ns-1)*0.5)/ns;
+				double spanw=rn_abat>-2.?batx+0.8-(x+0.5):6.;
+				double sgw=(spanw-(ns-1)*0.5)/ns;
 				for(int i=0;i<ns;i++){
 					int cs=rn_asegs[i];
 					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),x+0.5+i*(sgw+0.5),cby,sgw,0.8,fl);
