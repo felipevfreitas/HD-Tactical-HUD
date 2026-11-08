@@ -457,7 +457,7 @@ extend class HDRNStatusBar{
 	// weapon list (shown on weapon switch)
 	// ------------------------------------------------------------
 	void RN_DrawWeaponList(double bottomy,double a,int fl){
-		array<Weapon> list;
+		array<HDWeapon> list;
 		//slots 1..9, then 0
 		for(int s=1;s<=10;s++){
 			int slot=s%10;
