@@ -612,18 +612,24 @@ extend class HDRNStatusBar{
 	void RN_DrawWeaponList(double bottomy,double a,int fl){
 		array<HDWeapon> list;
 		bool hasgren=false;
-		//slots 1..9, then 0
+		//slots 1..9, then 0; inside a slot, the engine's own order, so the
+		//list matches next/previous weapon (mouse wheel) - and since "next"
+		//wraps from 9 to 0 to 1, slot 0 at the bottom keeps that consistent
 		for(int s=1;s<=10;s++){
 			int slot=s%10;
-			for(let item=cplayer.mo.inv;item!=null;item=item.inv){
-				let wp=hdweapon(item);
-				if(!wp||wp is "NullWeapon"||wp.slotnumber!=slot)continue;
+			int sz=cplayer.weapons.SlotSize(slot);
+			for(int j=0;j<sz;j++){
+				let cls=cplayer.weapons.GetWeapon(slot,j);
+				if(!cls)continue;
+				let wp=hdweapon(cplayer.mo.FindInventory(cls));
+				if(!wp||wp is "NullWeapon")continue;
 				//grenades: one entry only, whatever kinds there are
 				bool gren=wp is "HDGrenadeThrower";
 				if(gren){
 					if(hasgren)continue;
 					hasgren=true;
 				}else if(wp.bwimpy_weapon)continue;
+				if(list.find(wp)<list.size())continue;
 				list.push(wp);
 			}
 		}
