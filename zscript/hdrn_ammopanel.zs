@@ -61,6 +61,8 @@ extend class HDRNStatusBar{
 	int rn_afmsel;
 	bool rn_ahasfm;
 	bool rn_adouble;
+	bool rn_aempty;		//nothing left to fire
+	bool rn_lastatk,rn_wasempty;
 	int rn_achamber2;
 	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
@@ -108,6 +110,19 @@ extend class HDRNStatusBar{
 			rn_realwep=ht;
 		}
 
+		//empty weapon: trying to fire shows ammo + fire mode; the fire mode
+		//column then fades as usual, but the ammo stays up for as long as
+		//the weapon is empty (until it's reloaded or put away)
+		bool atk=!!(cplayer.cmd.buttons&BT_ATTACK);
+		bool empty=RN_BuildPanel(RN_DispWeapon())&&rn_aempty;
+		if(empty&&atk&&(!rn_lastatk||!rn_wasempty))RN_PanelShow(RN_T_INSPECT,RN_T_INSPECT,0);
+		if(empty&&rn_apalf>0){
+			rn_aptimer=max(rn_aptimer,1);
+			rn_apalf=1;
+		}
+		rn_lastatk=atk;
+		rn_wasempty=empty;
+
 		//firing during the fade-out brings it back to full and restarts the fade
 		if(cplayer.cmd.buttons&BT_ATTACK){
 			if(rn_apalf>0)rn_apalf=1;
@@ -151,7 +166,7 @@ extend class HDRNStatusBar{
 		rn_ahasfm=false;
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
-		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;
+		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -160,6 +175,7 @@ extend class HDRNStatusBar{
 			rn_alabel="$HDRN_AP_GRENADES";
 			let gw=HDGrenadeThrower(w);
 			rn_atotal=gw.grenadeammotype?hpl.countinv(gw.grenadeammotype):0;
+			rn_aempty=rn_atotal<=0;
 			return true;
 		}
 
@@ -173,6 +189,7 @@ extend class HDRNStatusBar{
 			rn_ares=hpl.countinv("HDShellAmmo");
 			rn_ajam=!!(st&HUNTF_JAMMED);
 			rn_apump=true;
+			rn_aempty=rn_aingun<=0;
 			if(!(st&HUNTF_EXPORT)){
 				int fm=w.weaponstatus[HUNTS_FIREMODE];	//0 pump, 1 semi, 2 auto
 				int sel=fm>=2?0:fm==1?1:2;
@@ -190,6 +207,7 @@ extend class HDRNStatusBar{
 			rn_achamber=clamp(w.weaponstatus[SLAYS_CHAMBER1],0,2);
 			rn_achamber2=clamp(w.weaponstatus[SLAYS_CHAMBER2],0,2);
 			rn_aingun=(rn_achamber==2?1:0)+(rn_achamber2==2?1:0);
+			rn_aempty=rn_aingun<=0;
 			rn_asad=clamp(w.weaponstatus[SHOTS_SIDESADDLE],0,12);
 			rn_ares=hpl.countinv("HDShellAmmo");
 			return true;
@@ -211,6 +229,7 @@ extend class HDRNStatusBar{
 			for(int i=0;i<min(2,res);i++)rn_aspare.push(1.);
 			rn_amore=res>2;
 			rn_atotal=res+(loaded?1:0);
+			rn_aempty=!loaded;
 			return true;
 		}
 
@@ -222,6 +241,7 @@ extend class HDRNStatusBar{
 		rn_acur=lcnt<0?-1.:clamp(lcnt/double(max(1,lcap)),0.,1.);
 		rn_acurdirty=ldirty;
 		rn_achamber=lch;
+		rn_aempty=lch!=2&&(lcnt<=0||rn_acur<=0.);
 
 		//spares, fullest first (HD loads a full mag, or else the fullest)
 		int nspare=0;
@@ -289,13 +309,21 @@ extend class HDRNStatusBar{
 		}
 	}
 
+	//on/off every 0.3 s (21 tics a full cycle)
+	bool RN_BlinkPhase(){
+		return (gametic%21)<11;
+	}
+
 	//one mag icon: fill bottom-up, or dotted red blinking outline when empty
 	void RN_MagIcon(double x,double y,double frac,bool dirty,double alf,int fl){
 		vector2 sc=(0.25,0.25);
 		int ifl=fl|DI_ITEM_LEFT_TOP;
+		//empty: dotted outline switching red / white every 0.3 s;
+		//no mag at all (taken out during a reload): white / faint white
 		if(frac<=0.){
-			double blink=0.35+0.65*(0.5+0.5*sin(gametic*5.));
-			DrawImage("HRNIRD",(x,y),ifl,alf*blink,scale:sc,col:color(255,220,50,40));
+			bool ph=RN_BlinkPhase();
+			if(frac<0.)DrawImage("HRNIRD",(x,y),ifl,alf*(ph?1.:0.3),scale:sc,col:color(255,235,235,235));
+			else DrawImage("HRNIRD",(x,y),ifl,alf,scale:sc,col:ph?color(255,220,50,40):color(255,235,235,235));
 			return;
 		}
 		DrawImage("HRNIRF",(x,y),ifl,alf*0.35,scale:sc,col:color(255,18,18,18));
@@ -321,8 +349,7 @@ extend class HDRNStatusBar{
 		vector2 sc=(0.25,0.25);
 		int ifl=fl|DI_ITEM_LEFT_TOP;
 		if(!loaded){
-			double blink=0.35+0.65*(0.5+0.5*sin(gametic*5.));
-			DrawImage("HRNGRNO",(x,y),ifl,alf*blink,scale:sc,col:color(255,220,50,40));
+			DrawImage("HRNGRNO",(x,y),ifl,alf,scale:sc,col:RN_BlinkPhase()?color(255,220,50,40):color(255,235,235,235));
 			return;
 		}
 		DrawImage("HRNGRNF",(x,y),ifl,alf*0.85,scale:sc,col:RN_AmmoFill());
@@ -420,7 +447,7 @@ extend class HDRNStatusBar{
 		RN_TextRightAt(lbl,rx,top+2.5,lblS,Font.CR_WHITE,a,fl);
 
 		if(rn_akind==RN_AK_COUNT){
-			RN_TextRightAt(FormatNumber(rn_atotal),rx,numy,numS,Font.CR_WHITE,a,fl);
+			RN_TextRightAt(FormatNumber(rn_atotal),rx,numy,numS,rn_atotal<=0?Font.CR_RED:Font.CR_WHITE,a,fl);
 			return;
 		}
 
@@ -429,7 +456,7 @@ extend class HDRNStatusBar{
 			string tin=FormatNumber(rn_aingun);
 			double win=RN_TextW(tin,numS);
 			double inalf=a;
-			int incol=Font.CR_WHITE;
+			int incol=rn_aingun<=0?Font.CR_RED:Font.CR_WHITE;
 			if(rn_ajam){
 				incol=Font.CR_RED;
 				inalf=a*(0.45+0.55*(0.5+0.5*sin(gametic*6.)));

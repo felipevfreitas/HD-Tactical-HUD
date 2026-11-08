@@ -5,7 +5,9 @@
 - **New ammo panel** in the bottom right, inspired by tactical shooters:
   label (MAGS / SHELLS / GRENADES), up to 3 mags with the one in the gun on
   the right (bar above it = round chambered), "+" when there are more, total
-  mags; empty mag = dotted outline blinking red; dirty ZM66 mag = red stripes.
+  mags; empty mag = dotted outline switching red / white every 0.3 s (white / faint
+  white while there's no mag in the gun); empty weapons show a red 0;
+  an empty weapon keeps its ammo on screen until it's reloaded or put away; dirty ZM66 mag = red stripes.
 - Shotguns: "reserve | side saddles + in the gun", split chamber bar (live /
   anything chambered), red number when jammed. Double barrel: same layout,
   bar split in half, one half per barrel.
