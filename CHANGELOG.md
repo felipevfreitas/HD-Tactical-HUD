@@ -14,7 +14,8 @@
 - Boss rifle and revolver: "reserve | in the gun" (ROUNDS); the Boss uses
   the split chamber bar (jammed = blinking), the revolver one bar segment per
   chamber (live / spent / empty).
-- Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
+- Grenade launcher mode: 40mm grenade icons (loaded + spares, bar above the
+  loaded one, dotted red / white when empty). Hand grenades: count.
 - Empty spare mags are hidden by default (option to show them, as a plain
   dotted outline). A jammed ZM66 behaves like an empty one: shows on the
   next click and its chamber bar blinks white / red.

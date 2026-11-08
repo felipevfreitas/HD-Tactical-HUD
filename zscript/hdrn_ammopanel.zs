@@ -63,7 +63,6 @@ extend class HDRNStatusBar{
 	bool rn_ahasfm;
 	transient cvar rn_apshowempty;
 	bool rn_adouble;
-	array<int> rn_acyl;	//revolver: per chamber 0 empty / 1 spent / 2 live
 	bool rn_aempty;		//nothing left to fire
 	bool rn_lastatk,rn_wasempty;
 	int rn_achamber2;
@@ -181,7 +180,7 @@ extend class HDRNStatusBar{
 		rn_ahasfm=false;
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
-		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;rn_acyl.clear();
+		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -254,8 +253,10 @@ extend class HDRNStatusBar{
 			for(int i=BUGS_CYL1;i<=BUGS_CYL6;i++){
 				int c=w.weaponstatus[i];	//1/3 spent, 2/4 live (9mm / .355)
 				int cs=c<=0?0:(c==2||c==4)?2:1;
-				rn_acyl.push(cs);
 				if(cs==2)rn_aingun++;
+				//the chamber under the hammer (the next one to fire) is CYL1:
+				//it gets the same split bar as the other guns' chambers
+				if(i==BUGS_CYL1)rn_achamber=cs;
 			}
 			rn_asad=-1;
 			rn_ares=hpl.countinv("HDRevolverAmmo");
@@ -411,16 +412,17 @@ extend class HDRNStatusBar{
 		DrawImage("HRNIRO",(x,y),ifl,alf,scale:sc,col:RN_AmmoLine());
 	}
 
-	//grenade icon (launcher): full, or dotted-looking blinking red when empty
+	//40mm grenade icon (same 7x13 canvas as the mags, sitting on the bottom):
+	//filled, or a dotted outline switching red / white every 0.3 s when empty
 	void RN_GrenIcon(double x,double y,bool loaded,double alf,int fl){
 		vector2 sc=(0.25,0.25);
 		int ifl=fl|DI_ITEM_LEFT_TOP;
 		if(!loaded){
-			DrawImage("HRNGRNO",(x,y),ifl,alf,scale:sc,col:RN_BlinkPhase()?color(255,220,50,40):color(255,235,235,235));
+			DrawImage("HRNGLD",(x,y),ifl,alf,scale:sc,col:RN_BlinkPhase()?color(255,220,50,40):color(255,235,235,235));
 			return;
 		}
-		DrawImage("HRNGRNF",(x,y),ifl,alf*0.85,scale:sc,col:RN_AmmoFill());
-		DrawImage("HRNGRNO",(x,y),ifl,alf,scale:sc,col:RN_AmmoLine());
+		DrawImage("HRNGLF",(x,y),ifl,alf*0.85,scale:sc,col:RN_AmmoFill());
+		DrawImage("HRNGLO",(x,y),ifl,alf,scale:sc,col:RN_AmmoLine());
 	}
 
 	//fire mode icon in a slot (bullets pointing right)
@@ -535,9 +537,7 @@ extend class HDRNStatusBar{
 			//anything in the chamber (live or spent)
 			double bary=numy-2.2;
 			double barw=8.;
-			if(rn_acyl.size()>0){
-				//revolver: the number is enough, no bar
-			}else if(rn_adouble){
+			if(rn_adouble){
 				//double barrel: one half per barrel (bright = live, dim = spent, faint = empty)
 				double hw=(barw-1)*0.5;
 				double bx=rx-barw;
@@ -586,7 +586,10 @@ extend class HDRNStatusBar{
 		//the one in the gun (rightmost) + its chamber bar
 		x-=7;
 		if(rn_akind==RN_AK_GRENADES){
-			RN_GrenIcon(x+0.5,icony,rn_acur>0.,a,fl);
+			RN_GrenIcon(x,icony,rn_acur>0.,a,fl);
+			//bar above the one in the launcher, like the mags' chamber bar
+			//(the grenade's top is 4 units below the canvas top)
+			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony+2.,6,0.8,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
 			//jammed: the chamber bar switches white / red like an empty mag
@@ -597,7 +600,7 @@ extend class HDRNStatusBar{
 		//spares, right to left
 		for(int i=0;i<rn_aspare.size();i++){
 			x-=7;
-			if(rn_akind==RN_AK_GRENADES)RN_GrenIcon(x+0.5,icony,true,a,fl);
+			if(rn_akind==RN_AK_GRENADES)RN_GrenIcon(x,icony,true,a,fl);
 			else RN_MagIcon(x,icony,rn_aspare[i],false,a,fl,true);
 		}
 		if(rn_amore){
@@ -628,7 +631,7 @@ extend class HDRNStatusBar{
 				if(gren){
 					if(hasgren)continue;
 					hasgren=true;
-				}else if(wp.bwimpy_weapon)continue;
+				}
 				if(list.find(wp)<list.size())continue;
 				list.push(wp);
 			}
@@ -666,6 +669,9 @@ extend class HDRNStatusBar{
 			//pickup sprite, fitted in a small box
 			string spr;double sscl;
 			[spr,sscl]=wp.getpickupsprite(true);
+			//our own silhouettes for things without a usable pickup sprite
+			if(wp is "HDFist")spr="HRNFIST";
+			else if(wp is "SelfBandage")spr="HRNBAND";
 			double ix=sx-2;
 			if(spr!=""){
 				//flat white silhouette (stencil)
