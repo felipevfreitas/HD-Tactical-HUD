@@ -58,6 +58,7 @@ extend class HDRNStatusBar{
 	int rn_afm[3];
 	int rn_afmsel;
 	bool rn_ahasfm;
+	Weapon rn_presprint;	//weapon held before sprinting
 
 
 	// ------------------------------------------------------------
@@ -80,12 +81,24 @@ extend class HDRNStatusBar{
 		rn_lastinspect=inspecttimer;
 
 		//fire mode changed: only the fire mode column
-		if(rn_modeflash==35)RN_PanelShow(false,true,false);
+		//(the status bar sets it to 35 and already counted it down once this tic)
+		if(rn_modeflash==34)RN_PanelShow(false,true,false);
 
 		//weapon switch: everything
+		//(going into a sprint, and back out to the same weapon, is ignored)
 		let rw=cplayer.readyweapon;
-		if(rw!=rn_lastready||cplayer.pendingweapon!=WP_NOCHANGE){
-			if(rw!=rn_lastready||rn_wltimer<=0)RN_PanelShow(true,true,true);
+		let pw=cplayer.pendingweapon;
+		bool switching=pw!=WP_NOCHANGE;
+		if(rw!=rn_lastready||switching){
+			let target=switching?pw:rw;
+			bool sprint=
+				(target&&target is "NullWeapon")
+				||(rw&&rw is "NullWeapon"&&target==rn_presprint)
+				||(rn_lastready&&rn_lastready is "NullWeapon"&&target==rn_presprint);
+			if(rw&&rw is "NullWeapon"){
+				if(rn_lastready&&!(rn_lastready is "NullWeapon"))rn_presprint=rn_lastready;
+			}else if(!switching)rn_presprint=null;
+			if(!sprint&&(rw!=rn_lastready||rn_wltimer<=0))RN_PanelShow(true,true,true);
 			rn_lastready=rw;
 		}
 
@@ -235,13 +248,14 @@ extend class HDRNStatusBar{
 	//HUD text adds 1 unscaled unit before each character; these helpers
 	//take that into account so text lines up exactly
 	double RN_TextW(string t,double s){
-		return NewSmallFont.StringWidth(t)*s+t.CodePointCount();
+		//the engine's +1 per glyph is undone after each glyph, so it's just the scaled width
+		return NewSmallFont.StringWidth(t)*s;
 	}
 	void RN_TextAt(string t,double x,double y,double s,int col,double alf,int fl){
 		drawstring(pnewsmallfont,t,(x-1,y),fl|DI_TEXT_ALIGN_LEFT,col,alf,scale:(s,s));
 	}
 	void RN_TextRightAt(string t,double rx,double y,double s,int col,double alf,int fl){
-		RN_TextAt(t,rx-RN_TextW(t,s)+1,y,s,col,alf,fl);
+		RN_TextAt(t,rx-RN_TextW(t,s),y,s,col,alf,fl);
 	}
 
 	//horizontal gradient box: transparent on the left, darker to the right
@@ -461,7 +475,7 @@ extend class HDRNStatusBar{
 			int slot=s%10;
 			for(let item=cplayer.mo.inv;item!=null;item=item.inv){
 				let wp=hdweapon(item);
-				if(!wp||wp.bwimpy_weapon||wp.slotnumber!=slot)continue;
+				if(!wp||wp.bwimpy_weapon||wp is "NullWeapon"||wp.slotnumber!=slot)continue;
 				list.push(wp);
 			}
 		}
