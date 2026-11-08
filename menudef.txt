@@ -64,6 +64,7 @@ OptionMenu "HDRNOptions"
 	StaticText ""
 	StaticText "$HDRN_HDR_AMMO", "Gold"
 	Control "$HDRN_KEY_INSPECT", "+hdrn_inspect"
+	Option "$HDRN_AP_SHOWEMPTY", "hdrn_ap_showempty", "OnOff"
 	Option "$HDRN_ALWAYSWEAPON", "hdrn_alwaysweapon", "OnOff"
 	Option "$HDRN_MAGNUMBERS", "hdrn_magnumbers", "OnOff"
 	Slider "$HDRN_MAGSCALE", "hdrn_magscale", 0.5, 2.0, 0.1, 1

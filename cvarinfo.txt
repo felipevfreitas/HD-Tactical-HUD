@@ -4,6 +4,7 @@ nosave noarchive int hdrn_inspectreq=0;
 nosave float hdrn_inspecttime=3.0;
 nosave bool hdrn_inspectonreload=true;
 nosave bool hdrn_magnumbers=false;
+nosave bool hdrn_ap_showempty=false;
 nosave float hdrn_magscale=1.0;
 nosave float hdrn_dollscale=1.0;
 nosave bool hdrn_showecg=true;

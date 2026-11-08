@@ -61,6 +61,7 @@ extend class HDRNStatusBar{
 	int rn_afm[3];
 	int rn_afmsel;
 	bool rn_ahasfm;
+	transient cvar rn_apshowempty;
 	bool rn_adouble;
 	bool rn_aempty;		//nothing left to fire
 	bool rn_lastatk,rn_wasempty;
@@ -120,7 +121,7 @@ extend class HDRNStatusBar{
 		//column then fades as usual, but the ammo stays up for as long as
 		//the weapon is empty (until it's reloaded or put away)
 		bool atk=!!(cplayer.cmd.buttons&BT_ATTACK);
-		bool empty=RN_BuildPanel(RN_DispWeapon())&&rn_aempty;
+		bool empty=RN_BuildPanel(RN_DispWeapon())&&(rn_aempty||rn_ajam);	//(jammed behaves the same)
 		//(a new click only - holding fire as it runs dry doesn't count - and only
 		//if the ammo isn't already up; once it's stuck there, clicking again
 		//doesn't bring the fire mode back)
@@ -135,7 +136,9 @@ extend class HDRNStatusBar{
 		//firing during the fade-out brings it back to full and restarts the fade
 		if(cplayer.cmd.buttons&BT_ATTACK){
 			if(rn_apalf>0)rn_apalf=1;
-			if(rn_fmalf>0)rn_fmalf=1;
+			//(the fire mode column only when it's up together with the ammo;
+			//shown alone after a mode change, firing doesn't bring it back)
+			if(rn_fmalf>0&&rn_apalf>0)rn_fmalf=1;
 		}
 
 		//ammo/fire mode shown at once, the weapon list fades in; then a short fade-out
@@ -251,6 +254,7 @@ extend class HDRNStatusBar{
 		rn_acur=lcnt<0?-1.:clamp(lcnt/double(max(1,lcap)),0.,1.);
 		rn_acurdirty=ldirty;
 		rn_achamber=lch;
+		rn_ajam=w is "ZM66AssaultRifle"&&!!(st&ZM66F_CHAMBERBROKEN);
 		rn_aempty=lch!=2&&(lcnt<=0||rn_acur<=0.);
 
 		//spares, fullest first (HD loads a full mag, or else the fullest)
@@ -260,7 +264,14 @@ extend class HDRNStatusBar{
 			nspare=mm.mags.size();
 			int full=max(1,mm.GetMagHudCount(mm.maxperunit));
 			array<int> cnts;
-			for(int i=0;i<nspare;i++)cnts.push(mm.GetMagHudCount(mm.mags[i]));
+			//empty spares are left out unless the option says otherwise
+			if(!rn_apshowempty)rn_apshowempty=CVar.FindCVar("hdrn_ap_showempty");
+			bool showempty=rn_apshowempty&&rn_apshowempty.GetBool();
+			for(int i=0;i<mm.mags.size();i++){
+				int c=mm.GetMagHudCount(mm.mags[i]);
+				if(c>0||showempty)cnts.push(c);
+			}
+			nspare=cnts.size();
 			//up to 3 mags drawn: the one in the gun + 2 spares, or 3 spares
 			//when the gun has no mag (its slot stays as an empty outline)
 			int nshow=lcnt>=0?2:3;
@@ -328,11 +339,16 @@ extend class HDRNStatusBar{
 	}
 
 	//one mag icon: fill bottom-up, or dotted red blinking outline when empty
-	void RN_MagIcon(double x,double y,double frac,bool dirty,double alf,int fl){
+	void RN_MagIcon(double x,double y,double frac,bool dirty,double alf,int fl,bool spare=false){
 		vector2 sc=(0.25,0.25);
 		int ifl=fl|DI_ITEM_LEFT_TOP;
 		//empty: dotted outline switching red / white every 0.3 s;
 		//no mag at all (taken out during a reload): white / faint white
+		if(frac<=0.&&spare){
+			//empty spare: plain dotted white, no blinking
+			DrawImage("HRNIRD",(x,y),ifl,alf*0.8,scale:sc,col:color(255,235,235,235));
+			return;
+		}
 		if(frac<=0.){
 			bool ph=RN_BlinkPhase();
 			if(frac<0.)DrawImage("HRNIRD",(x,y),ifl,alf*(ph?1.:0.3),scale:sc,col:color(255,235,235,235));
@@ -489,8 +505,14 @@ extend class HDRNStatusBar{
 			}else{
 				double longw=(win-1)*0.65,shortw=(win-1)*0.35-1;
 				double bx=rx-win+1;
-				fill(color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),bx,bary,longw,0.8,fl);
-				fill(color(int(255*a*(rn_achamber>=1?1.:0.22)),235,235,235),bx+longw+1,bary,shortw,0.8,fl);
+				if(rn_ajam){
+					color jc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
+					fill(jc,bx,bary,longw,0.8,fl);
+					fill(jc,bx+longw+1,bary,shortw,0.8,fl);
+				}else{
+					fill(color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),bx,bary,longw,0.8,fl);
+					fill(color(int(255*a*(rn_achamber>=1?1.:0.22)),235,235,235),bx+longw+1,bary,shortw,0.8,fl);
+				}
 			}
 
 			double x=rx-win-1.5;
@@ -522,16 +544,16 @@ extend class HDRNStatusBar{
 			RN_GrenIcon(x+0.5,icony,rn_acur>0.,a,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
-			fill(
-				color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),
-				x+0.5,icony-1.,6,0.8,fl
-			);
+			//jammed: the chamber bar switches white / red like an empty mag
+			color chc=color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235);
+			if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
+			fill(chc,x+0.5,icony-1.,6,0.8,fl);
 		}
 		//spares, right to left
 		for(int i=0;i<rn_aspare.size();i++){
 			x-=7;
 			if(rn_akind==RN_AK_GRENADES)RN_GrenIcon(x+0.5,icony,true,a,fl);
-			else RN_MagIcon(x,icony,rn_aspare[i],false,a,fl);
+			else RN_MagIcon(x,icony,rn_aspare[i],false,a,fl,true);
 		}
 		if(rn_amore){
 			RN_TextRightAt("+",x,bottom-pad-8.,smlS,Font.CR_WHITE,a,fl);

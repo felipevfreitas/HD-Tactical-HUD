@@ -12,6 +12,9 @@
   anything chambered), red number when jammed. Double barrel: same layout,
   bar split in half, one half per barrel.
 - Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
+- Empty spare mags are hidden by default (option to show them, as a plain
+  dotted outline). A jammed ZM66 behaves like an empty one: shows on the
+  next click and its chamber bar blinks white / red.
 - Fire mode column next to it, with only the weapon's modes, stacked from the
   top (blanks at the bottom, with no background); smaller icons.
 - Fixed-size background: long contents just spill out to the left.
