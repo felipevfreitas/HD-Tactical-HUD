@@ -1,6 +1,6 @@
 # HD Tactical HUD
 
-Uma HUD no estilo *Ready or Not* para o **Hideous Destructor**, junto com o **Centered Magnified Scopes**, num `.pk3` só.
+Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destructor**, junto com o **Centered Magnified Scopes**, num `.pk3` só.
 
 [English](README.md)
 
@@ -99,4 +99,4 @@ O `.pk3` é só um zip dos arquivos do repositório:
 
 - **Hideous Destructor**, de Matt (mc776) e colaboradores.
 - Paperdoll baseado no sprite do Doomguy de *Doom* (id Software).
-- Inspirado na HUD de *Ready or Not* (VOID Interactive).
+- Inspirado em jogos de tiro táticos como *Ready or Not*, *Insurgency: Sandstorm* e *Escape from Tarkov*.

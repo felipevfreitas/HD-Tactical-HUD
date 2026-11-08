@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-// Tactical HUD v1.0.0 - "Ready or Not" style HUD for Hideous Destructor
+// Tactical HUD v1.0.0 - tactical-shooter style HUD for Hideous Destructor
 //
 // - Paper doll (bottom left) filled from the bottom up according
 //   to health, tinted white -> yellow -> orange -> red.
