@@ -115,7 +115,10 @@ extend class HDRNStatusBar{
 		//the weapon is empty (until it's reloaded or put away)
 		bool atk=!!(cplayer.cmd.buttons&BT_ATTACK);
 		bool empty=RN_BuildPanel(RN_DispWeapon())&&rn_aempty;
-		if(empty&&atk&&(!rn_lastatk||!rn_wasempty))RN_PanelShow(RN_T_INSPECT,RN_T_INSPECT,0);
+		//(a new click only - holding fire as it runs dry doesn't count - and only
+		//if the ammo isn't already up; once it's stuck there, clicking again
+		//doesn't bring the fire mode back)
+		if(empty&&atk&&!rn_lastatk&&rn_apalf<=0)RN_PanelShow(RN_T_INSPECT,RN_T_INSPECT,0);
 		if(empty&&rn_apalf>0){
 			rn_aptimer=max(rn_aptimer,1);
 			rn_apalf=1;
@@ -390,7 +393,7 @@ extend class HDRNStatusBar{
 		double top=bottom-boxh;
 
 		//fire mode column (reserves its space whenever the weapon has modes)
-		double colw=13.;
+		double colw=(boxh-2.)/3.;	//square slots (3 per column, 1 unit apart)
 		double boxr=-4.;
 		if(have&&rn_ahasfm&&rn_akind!=RN_AK_GRENADES){
 			double colx=-4.-colw;
