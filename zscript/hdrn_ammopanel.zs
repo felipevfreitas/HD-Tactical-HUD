@@ -65,6 +65,8 @@ extend class HDRNStatusBar{
 	bool rn_adouble;
 	bool rn_aempty;		//nothing left to fire
 	bool rn_lastatk,rn_wasempty;
+	bool rn_lastgl;
+	hdweapon rn_lastglwep;
 	int rn_achamber2;
 	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
@@ -121,7 +123,17 @@ extend class HDRNStatusBar{
 		//column then fades as usual, but the ammo stays up for as long as
 		//the weapon is empty (until it's reloaded or put away)
 		bool atk=!!(cplayer.cmd.buttons&BT_ATTACK);
-		bool empty=RN_BuildPanel(RN_DispWeapon())&&(rn_aempty||rn_ajam);	//(jammed behaves the same)
+		let dw=RN_DispWeapon();
+		bool built=RN_BuildPanel(dw);
+		bool empty=built&&(rn_aempty||rn_ajam);	//(jammed behaves the same)
+
+		//switching to / from the underbarrel grenade launcher shows the ammo
+		//(+ the fire mode column when going back to the rifle)
+		bool gl=built&&rn_akind==RN_AK_GRENADES;
+		if(built&&dw==rn_lastglwep&&gl!=rn_lastgl)RN_PanelShow(RN_T_SWITCH,gl?0:RN_T_SWITCH,0);
+		rn_lastgl=gl;
+		rn_lastglwep=dw;
+
 		//(a new click only - holding fire as it runs dry doesn't count - and only
 		//if the ammo isn't already up; once it's stuck there, clicking again
 		//doesn't bring the fire mode back)
@@ -588,8 +600,8 @@ extend class HDRNStatusBar{
 		if(rn_akind==RN_AK_GRENADES){
 			RN_GrenIcon(x,icony,rn_acur>0.,a,fl);
 			//bar above the one in the launcher, like the mags' chamber bar
-			//(the grenade's top is 4 units below the canvas top)
-			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony+2.,6,0.8,fl);
+			//(the grenade's top is 2 units below the canvas top)
+			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony,6,0.8,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
 			//jammed: the chamber bar switches white / red like an empty mag
