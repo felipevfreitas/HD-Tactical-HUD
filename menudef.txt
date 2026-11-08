@@ -1,0 +1,167 @@
+OptionValue "HDRNInvModes"
+{
+	0, "$HDRN_INV_OFF"
+	1, "$HDRN_INV_ON"
+	2, "$HDRN_INV_AUTO"
+}
+
+OptionValue "HDRNArmourModes"
+{
+	0, "$HDRN_INV_OFF"
+	1, "$HDRN_ARMOUR_SHELL"
+	2, "$HDRN_ARMOUR_VEST"
+}
+
+OptionValue "HDRNAspects"
+{
+	0, "$HDRN_INV_OFF"
+	1, "16:9"
+	2, "16:10"
+	3, "4:3"
+	4, "21:9"
+}
+
+OptionValue "HDRNShowModes"
+{
+	0, "$HDRN_INV_OFF"
+	1, "$HDRN_INV_ON"
+	2, "$HDRN_SHOW_CHECKING"
+}
+
+OptionValue "HDRNCompassStyles"
+{
+	0, "$HDRN_INV_OFF"
+	1, "$HDRN_CMP_MINIMAL"
+	2, "$HDRN_CMP_BAR"
+}
+
+OptionValue "HDRNCompassWhen"
+{
+	1, "$HDRN_CMP_ALWAYS"
+	2, "$HDRN_CMP_USE"
+}
+
+OptionValue "HDRNCompassElastic"
+{
+	0, "$HDRN_INV_OFF"
+	3, "$HDRN_CMP_LIGHTEST"
+	1, "$HDRN_CMP_LIGHT"
+	2, "$HDRN_CMP_STRONG"
+}
+
+OptionValue "HDRNCompassZoom"
+{
+	0, "$HDRN_CMP_SHORT"
+	1, "$HDRN_CMP_MEDIUM"
+	2, "$HDRN_CMP_LONG"
+}
+
+OptionMenu "HDRNOptions"
+{
+	Title "$HDRN_TITLE"
+	StaticText "v1.0.0", "DarkGray"
+	Option "$HDRN_ENABLE", "hdrn_enable", "OnOff"
+	StaticText ""
+	StaticText "$HDRN_HDR_AMMO", "Gold"
+	Control "$HDRN_KEY_INSPECT", "+hdrn_inspect"
+	Option "$HDRN_ALWAYSWEAPON", "hdrn_alwaysweapon", "OnOff"
+	Option "$HDRN_MAGNUMBERS", "hdrn_magnumbers", "OnOff"
+	Slider "$HDRN_MAGSCALE", "hdrn_magscale", 0.5, 2.0, 0.1, 1
+	Option "$HDRN_AMMOUSEPCOL", "hdrn_ammousepcol", "OnOff"
+	StaticText ""
+	StaticText "$HDRN_HDR_HEALTH", "Gold"
+	Slider "$HDRN_DOLLSCALE", "hdrn_dollscale", 0.5, 2.0, 0.1, 1
+	Option "$HDRN_SHOWECG", "hdrn_showecg", "OnOff"
+	Option "$HDRN_ARMOURSTYLE", "hdrn_armourstyle", "HDRNArmourModes"
+	StaticText ""
+	StaticText "$HDRN_HDR_COMPASS", "Gold"
+	Option "$HDRN_COMPASS", "hdrn_compass", "HDRNCompassStyles"
+	StaticText ""
+	Submenu "$BCS_TITLE", "BossScopeMenu"
+	Submenu "$HDRN_ADVANCED", "HDRNAdvanced"
+}
+
+OptionMenu "HDRNAdvanced"
+{
+	Title "$HDRN_ADVANCED"
+	StaticText "$HDRN_HDR_SAFE", "Gold"
+	Option "$HDRN_SAFEASPECT", "hdrn_safeaspect", "HDRNAspects"
+	Slider "$HDRN_SAFEX", "hdrn_safex", 0, 30, 0.5, 1
+	Slider "$HDRN_SAFEY", "hdrn_safey", 0, 30, 0.5, 1
+	StaticText ""
+	StaticText "$HDRN_HDR_AMMO", "Gold"
+	Slider "$HDRN_INSPECTTIME", "hdrn_inspecttime", 1, 10, 0.5, 1
+	Option "$HDRN_INSPECTANIM", "hdrn_inspectanim", "OnOff"
+	Slider "$HDRN_INSPECTANIMSPD", "hdrn_inspectanimspeed", 0.5, 4.0, 0.25, 2
+	Slider "$HDRN_INSPECTDROP", "hdrn_inspectdrop", 0, 100, 5, 0
+	Option "$HDRN_INSPECTRELOAD", "hdrn_inspectonreload", "OnOff"
+	Option "$HDRN_SHOWONPUMP", "hdrn_showonpump", "OnOff"
+	Option "$HDRN_WEAPONNAME", "hdrn_weaponnamemode", "HDRNShowModes"
+	Option "$HDRN_FIREMODESHOW", "hdrn_firemodemode", "HDRNShowModes"
+	StaticText ""
+	StaticText "$HDRN_HDR_HEALTH", "Gold"
+	Option "$HDRN_SHOWHPNUM", "hdrn_showhpnumber", "OnOff"
+	Slider "$HDRN_ARMOURWIDTH", "hdrn_armourwidth", 1, 3, 1, 0
+	Option "$HDRN_ARMOURNUM", "hdrn_armournumber", "OnOff"
+	StaticText ""
+	StaticText "$HDRN_HDR_INV", "Gold"
+	Option "$HDRN_INVENTORY", "hdrn_inventory", "HDRNInvModes"
+	Option "$HDRN_SHOWITEMS", "hdrn_showitems", "OnOff"
+	StaticText ""
+	StaticText "$HDRN_HDR_COMPASS", "Gold"
+	Option "$HDRN_COMPASSWHEN", "hdrn_compasswhen", "HDRNCompassWhen"
+	Option "$HDRN_COMPASSELASTIC", "hdrn_compasselastic", "HDRNCompassElastic"
+	Option "$HDRN_COMPASSZOOM", "hdrn_compasszoom", "HDRNCompassZoom"
+	StaticText ""
+	SafeCommand "$HDRN_RESET", "hdrn_resetdefaults", "$HDRN_RESETCONFIRM"
+}
+
+AddOptionMenu "HDAddonMenu"
+{
+	Submenu "$HDRN_TITLE", "HDRNOptions"
+}
+
+AddOptionMenu "OptionsMenu"
+{
+	Submenu "$HDRN_TITLE", "HDRNOptions"
+}
+
+// ---- Centered Magnified Scopes ----
+OptionValue "BCSOutside"{
+	0, "$BCS_OUTSIDE_NORMAL"
+	1, "$BCS_OUTSIDE_BLACK"
+	2, "$BCS_OUTSIDE_BLUR"
+}
+
+OptionValue "BCSZoomSmooth"{
+	0, "$BCS_ZOOM_INSTANT"
+	1, "$BCS_ZOOM_SMOOTH"
+}
+
+OptionValue "BCSSensMode"{
+	0, "$BCS_SENS_OFF"
+	2, "$BCS_SENS_SCREEN"
+}
+
+OptionMenu "BossScopeMenu"{
+	Title "$BCS_TITLE"
+	Option "$BCS_MODON","bcs_modon","OnOff"
+	StaticText " "
+	StaticText "$BCS_HDR_VISUAL", "Gold"
+	Option "$BCS_ENABLED","bcs_enabled","OnOff"
+	Slider "$BCS_SIZE","bcs_size",0.5,6.0,0.1,1
+	StaticText " "
+	StaticText "$BCS_HDR_OUTSIDE", "Gold"
+	Option "$BCS_OUTSIDE","bcs_outside","BCSOutside"
+	Slider "$BCS_BLUR","bcs_blur",0.5,10.0,0.5,1
+	Option "$BCS_OUTZOOM","bcs_outzoomon","OnOff"
+	Option "$BCS_ZOOMTRANS","bcs_outzoomsmooth","BCSZoomSmooth"
+	StaticText " "
+	StaticText "$BCS_HDR_SENS", "Gold"
+	Option "$BCS_SENSMODE","bcs_sensmode","BCSSensMode"
+	Slider "$BCS_SENSMULT","bcs_sensmult",0.1,3.0,0.05,2
+	StaticText " "
+	StaticText "$BCS_NOSCOPE_HINT1", "White"
+	StaticText "$BCS_NOSCOPE_HINT2", "White"
+	Option "$HDOPTIONS_PASSIVESIGHTS","hd_noscope","NoScope"
+}

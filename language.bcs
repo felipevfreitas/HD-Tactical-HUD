@@ -1,0 +1,59 @@
+// Centered Magnified Scopes - textos do menu
+// [enu default] = ingles, usado em qualquer idioma sem traducao propria
+// [pt ptb ptg]  = portugues (o GZDoom/UZDoom usa "pt" para PT-BR)
+
+[enu default]
+BCS_TITLE = "Centered Magnified Scopes";
+BCS_MODON = "Enable Centered Magnified Scopes";
+
+BCS_HDR_VISUAL = "Visual";
+BCS_ENABLED = "Centered scope";
+BCS_SIZE = "Scope size";
+
+BCS_HDR_OUTSIDE = "Outside the scope (holding Zoom)";
+BCS_OUTSIDE = "Screen outside the scope";
+BCS_OUTSIDE_NORMAL = "Normal";
+BCS_OUTSIDE_BLACK = "Black";
+BCS_OUTSIDE_BLUR = "Blurred";
+BCS_BLUR = "Blur strength";
+BCS_OUTZOOM = "Zoom outside the scope";
+BCS_ZOOMTRANS = "Zoom transition";
+BCS_ZOOM_INSTANT = "Instant";
+BCS_ZOOM_SMOOTH = "Smooth";
+
+BCS_HDR_SENS = "Scope sensitivity";
+BCS_SENSMODE = "Normalize";
+BCS_SENS_OFF = "Off (HD default)";
+BCS_SENS_SCREEN = "Match on screen";
+BCS_SENSMULT = "Multiplier";
+
+BCS_NOSCOPE_HINT1 = "For separate iron sights and scope,";
+BCS_NOSCOPE_HINT2 = "use 'Sights passive, scope on Zoom press':";
+
+[pt ptb ptg]
+BCS_TITLE = "Centered Magnified Scopes";
+BCS_MODON = "Ativar Centered Magnified Scopes";
+
+BCS_HDR_VISUAL = "Visual";
+BCS_ENABLED = "Scope centralizado";
+BCS_SIZE = "Tamanho do scope";
+
+BCS_HDR_OUTSIDE = "Fora do scope (segurando Zoom)";
+BCS_OUTSIDE = "Tela fora do scope";
+BCS_OUTSIDE_NORMAL = "Normal";
+BCS_OUTSIDE_BLACK = "Preto";
+BCS_OUTSIDE_BLUR = "Borrado";
+BCS_BLUR = "Intensidade do borrao";
+BCS_OUTZOOM = "Zoom fora do scope";
+BCS_ZOOMTRANS = "Transicao do zoom";
+BCS_ZOOM_INSTANT = "Instantaneo";
+BCS_ZOOM_SMOOTH = "Suave";
+
+BCS_HDR_SENS = "Sensibilidade no scope";
+BCS_SENSMODE = "Normalizar";
+BCS_SENS_OFF = "Desligado (padrao do HD)";
+BCS_SENS_SCREEN = "Igual na tela";
+BCS_SENSMULT = "Multiplicador";
+
+BCS_NOSCOPE_HINT1 = "Para ter mira de ferro e scope separados,";
+BCS_NOSCOPE_HINT2 = "use 'Sights passive, scope on Zoom press':";

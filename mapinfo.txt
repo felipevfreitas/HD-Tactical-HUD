@@ -1,0 +1,7 @@
+// Tactical HUD - load AFTER Hideous Destructor
+// (includes Centered Magnified Scopes, formerly Boss Scope Centralizado:
+// don't load that mod separately)
+gameinfo{
+	statusbarclass="BossScopeStatusBar"
+	addeventhandlers="HDRNHandler","BossScopeHandler"
+}

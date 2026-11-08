@@ -1,0 +1,5 @@
+HardwareShader PostProcess scene{
+	Name "BCSBlur"
+	Shader "bcsblur.fp" 330
+	Uniform float u_strength
+}

@@ -1,0 +1,44 @@
+// Tactical HUD (client-side settings)
+nosave bool hdrn_enable=true;
+nosave noarchive int hdrn_inspectreq=0;
+nosave float hdrn_inspecttime=3.0;
+nosave bool hdrn_inspectonreload=true;
+nosave bool hdrn_magnumbers=false;
+nosave float hdrn_magscale=1.0;
+nosave float hdrn_dollscale=1.0;
+nosave bool hdrn_showecg=true;
+nosave bool hdrn_showhpnumber=false;
+nosave int hdrn_inventory=2;
+nosave bool hdrn_showitems=true;
+nosave int hdrn_weaponnamemode=2;
+nosave int hdrn_firemodemode=2;
+nosave int hdrn_armourstyle=1;
+nosave bool hdrn_armournumber=false;
+nosave int hdrn_armourwidth=1;
+user bool hdrn_inspectanim=true;
+user float hdrn_inspectanimspeed=1.0;
+nosave float hdrn_safex=0;
+nosave float hdrn_safey=0;
+nosave int hdrn_safeaspect=0;
+user float hdrn_inspectdrop=30;
+nosave noarchive int hdrn_inspecthold=0;
+nosave bool hdrn_showonpump=true;
+nosave bool hdrn_alwaysweapon=false;
+nosave color hdrn_ammocolor="f0 f0 f0";
+nosave bool hdrn_ammousepcol=false;
+
+nosave int hdrn_compass=2;
+nosave int hdrn_compasswhen=1;
+nosave int hdrn_compasselastic=1;
+nosave int hdrn_compasszoom=0;
+
+// Centered Magnified Scopes
+user bool bcs_modon=true;
+user bool bcs_enabled=true;
+user float bcs_size=1.6;
+user int bcs_sensmode=2;
+user float bcs_sensmult=1.0;
+user int bcs_outside=0;
+user float bcs_blur=3.0;
+user bool bcs_outzoomon=true;
+user bool bcs_outzoomsmooth=false;
