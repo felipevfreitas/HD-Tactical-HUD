@@ -343,7 +343,7 @@ extend class HDRNStatusBar{
 			rn_acur=loaded?1.:-1.;
 			int gshow=loaded?2:3;
 			for(int i=0;i<min(gshow,res);i++)rn_aspare.push(1.);
-			rn_amore=res+(loaded?1:0)>3;
+			rn_amore=res>rn_aspare.size();
 			rn_atotal=res+(loaded?1:0);
 			rn_aempty=!loaded;
 			return true;
@@ -435,7 +435,9 @@ extend class HDRNStatusBar{
 			}
 		}
 		rn_atotal=nspare+(lcnt>=0?1:0)+extra;
-		rn_amore=rn_atotal>3;
+		//"+" and the total only when some spare isn't drawn (the Vulcanette's
+		//queued mags are all visible on the queue line)
+		rn_amore=nspare>rn_aspare.size();
 
 		//fire modes, slots top->bottom
 		if(w is "HDPistol"){
@@ -704,9 +706,9 @@ extend class HDRNStatusBar{
 		}
 
 		//mags (or grenades): total number on the right, icons to its left
-		//(the total and the "+" only when there are more than 3)
+		//(the total and the "+" only when some aren't drawn)
 		double x=rx;
-		if(rn_atotal>3){
+		if(rn_amore){
 			string tn=FormatNumber(rn_atotal);
 			RN_TextRightAt(tn,rx,numy,numS,Font.CR_WHITE,a,fl);
 			x=rx-RN_TextW(tn,numS)-4;
