@@ -297,17 +297,17 @@ extend class HDRNStatusBar{
 	//fire mode icon in a slot (bullets pointing right)
 	void RN_FMIcon(int mode,double cx,double cy,double alf,int fl){
 		color c=color(int(255*alf),235,235,235);
-		double bw=4,bh=1.3;
+		double bw=2.8,bh=0.8;
 		if(mode==RN_FM_SEMI){
 			fill(c,cx-bw*0.5,cy-bh*0.5,bw,bh,fl);
 		}else if(mode==RN_FM_BURST){
-			for(int i=0;i<3;i++)fill(c,cx-3.5+i*1.5,cy-3+i*2.4,bw,bh,fl);
+			for(int i=0;i<3;i++)fill(c,cx-2.3+i*0.9,cy-2.+i*1.6,bw,bh,fl);
 		}else if(mode==RN_FM_AUTO){
-			for(int i=0;i<5;i++)fill(c,cx-3.8+(i%2)*3,cy-3.8+i*1.75,bw*0.85,bh*0.9,fl);
+			for(int i=0;i<5;i++)fill(c,cx-2.6+(i%2)*2.,cy-2.6+i*1.2,bw*0.85,bh*0.9,fl);
 		}else if(mode==RN_FM_PUMP){
-			double s=3.6/NewSmallFont.GetHeight();
+			double s=3./NewSmallFont.GetHeight();
 			string t=StringTable.Localize("$HDRN_AP_PUMP");
-			RN_TextAt(t,cx-RN_TextW(t,s)*0.5,cy-1.8,s,Font.CR_WHITE,alf,fl);
+			RN_TextAt(t,cx-RN_TextW(t,s)*0.5,cy-1.5,s,Font.CR_WHITE,alf,fl);
 		}
 	}
 
@@ -335,20 +335,30 @@ extend class HDRNStatusBar{
 			boxr=colx-1.5;
 			if(rn_fmalf>0.){
 				double a=rn_fmalf;
-				fill(color(int(170*a),20,23,30),colx,top,colw,boxh,fl);
-				double slh=boxh/3.;
+				//stack the weapon's modes from the top, blanks at the bottom
+				array<int> modes;
+				int nm=0,selk=-1;
 				for(int k=0;k<3;k++){
-					int m=rn_afm[k];
-					if(m==RN_FM_NONE)continue;
-					double sy=top+k*slh;
-					bool sel=k==rn_afmsel;
+					if(rn_afm[k]==RN_FM_NONE)continue;
+					if(k==rn_afmsel)selk=nm;
+					modes.push(rn_afm[k]);
+					nm++;
+				}
+				double sgap=1.;
+				double slh=(boxh-sgap*2)/3.;
+				for(int k=0;k<nm;k++){
+					int m=modes[k];
+					double sy=top+k*(slh+sgap);
+					bool sel=k==selk;
 					if(sel){
 						fill(color(int(200*a),120,118,110),colx,sy,colw,slh,fl);
 						color bc=color(int(255*a),235,235,235);
-						fill(bc,colx+0.5,sy+0.5,2.5,0.6,fl);
-						fill(bc,colx+0.5,sy+0.5,0.6,2.5,fl);
-						fill(bc,colx+colw-3,sy+slh-1.1,2.5,0.6,fl);
-						fill(bc,colx+colw-1.1,sy+slh-3,0.6,2.5,fl);
+						fill(bc,colx+0.5,sy+0.5,2.,0.5,fl);
+						fill(bc,colx+0.5,sy+0.5,0.5,2.,fl);
+						fill(bc,colx+colw-2.5,sy+slh-1.,2.,0.5,fl);
+						fill(bc,colx+colw-1.,sy+slh-2.5,0.5,2.,fl);
+					}else{
+						fill(color(int(170*a),20,23,30),colx,sy,colw,slh,fl);
 					}
 					RN_FMIcon(m,colx+colw*0.5,sy+slh*0.5,a*(sel?1.:0.35),fl);
 				}
@@ -365,22 +375,10 @@ extend class HDRNStatusBar{
 		double pad=3.;
 		double rx=boxr-pad;
 		double numy=bottom-pad-12.;
-		double contentw=0;
 		string lbl=StringTable.Localize(rn_alabel);
 
-		//measure for the background box
-		double lblw=RN_TextW(lbl,lblS);
-		double roww=0;
-		if(rn_akind==RN_AK_SHELLS){
-			roww=RN_TextW(FormatNumber(rn_aingun),numS)+RN_TextW("+",smlS)+RN_TextW(FormatNumber(rn_asad),smlS)
-				+RN_TextW(FormatNumber(rn_ares),smlS)+10;
-		}else if(rn_akind==RN_AK_COUNT){
-			roww=RN_TextW(FormatNumber(rn_atotal),numS);
-		}else{
-			roww=RN_TextW(FormatNumber(rn_atotal),numS)+4+(rn_aspare.size()+1)*7+(rn_amore?5:0);
-		}
-		contentw=max(lblw,roww);
-		double boxw=max(42.,contentw+pad*2+8);
+		//fixed-size background: contents that don't fit just spill out to the left
+		double boxw=46.;
 		RN_GradBox(boxr-boxw,top,boxw,boxh,a,fl);
 
 		//label
@@ -477,7 +475,9 @@ extend class HDRNStatusBar{
 		for(int i=0;i<n;i++){
 			let wp=list[i];
 			double y=bottomy-(n-i)*(rowh+gap);
-			bool cur=wp==cplayer.readyweapon||wp==cplayer.pendingweapon;
+			//while switching, only the weapon being switched to is highlighted
+			bool cur=cplayer.pendingweapon!=WP_NOCHANGE?
+				wp==cplayer.pendingweapon:wp==cplayer.readyweapon;
 			if(cur)fill(color(int(170*a),90,95,105),right-roww,y,roww,rowh,fl);
 			else RN_GradBox(right-roww,y,roww,rowh,a,fl,0.5);
 
@@ -495,7 +495,9 @@ extend class HDRNStatusBar{
 			[spr,sscl]=wp.getpickupsprite(true);
 			double ix=sx-2;
 			if(spr!=""){
-				DrawImage(spr,(ix,y+rowh*0.5),fl|DI_ITEM_RIGHT|DI_ITEM_VCENTER,a*(cur?1.:0.6),box:(16,6));
+				//flat white silhouette (stencil)
+				DrawImage(spr,(ix,y+rowh*0.5),fl|DI_ITEM_RIGHT|DI_ITEM_VCENTER,a*(cur?1.:0.6),box:(16,6),
+					style:STYLE_Stencil,col:color(255,235,235,235));
 				ix-=18;
 			}
 

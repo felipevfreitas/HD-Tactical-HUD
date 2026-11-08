@@ -9,8 +9,11 @@
 - Shotguns: "reserve | side saddles + in the gun", split chamber bar (live /
   anything chambered), red number when jammed.
 - Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
-- Fire mode column next to it, with only the weapon's modes.
-- Weapon list above the panel when switching weapons (grenades with their count).
+- Fire mode column next to it, with only the weapon's modes, stacked from the
+  top (blanks at the bottom, with no background); smaller icons.
+- Fixed-size background: long contents just spill out to the left.
+- Weapon list above the panel when switching weapons (grenades with their
+  count, weapons as silhouettes); only the weapon being switched to is highlighted.
 - Shows instantly on inspect / reload / weapon switch (fire mode change shows
   only the fire mode column) and fades out; firing keeps it up and brings it
   back while fading.
