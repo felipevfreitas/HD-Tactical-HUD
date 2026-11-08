@@ -6,9 +6,8 @@
 //   Lost maximum health grows from the top down in dark red with
 //   darker diagonal stripes.
 // - ECG / heart rate next to the paper doll.
-// - Weapon readout moved to the bottom right.
-// - "Inspect ammo" key shows the equipped weapon's magazines at the
-//   bottom centre, each one filled according to its round count.
+// - Ammo panel in the bottom right (hdrn_ammopanel.zs); weapons it doesn't
+//   handle keep HD's own readout, above the BPM.
 // - Inventory / items in the top right (can be disabled).
 // ------------------------------------------------------------
 class HDRNStatusBar:HDStatusBar{
@@ -18,24 +17,18 @@ class HDRNStatusBar:HDStatusBar{
 	transient cvar rn_inspectreq;
 	transient cvar rn_inspecthold;
 	transient cvar rn_showonpump;
-	transient cvar rn_alwaysweapon;
 	transient cvar rn_ammocolor;
 	transient cvar rn_ammousepcol;
 	transient cvar rn_compass;
 	transient cvar rn_compasswhen;
 	transient cvar rn_compasselastic;
 	transient cvar rn_compasszoom;
-	transient cvar rn_inspecttime;
 	transient cvar rn_inspectonreload;
-	transient cvar rn_magnumbers;
-	transient cvar rn_magscale;
 	transient cvar rn_dollscale;
 	transient cvar rn_showecg;
 	transient cvar rn_showhpnum;
 	transient cvar rn_inventory;
 	transient cvar rn_showitems;
-	transient cvar rn_weaponname;
-	transient cvar rn_firemodeshow;
 	transient cvar rn_armourstyle;
 	transient cvar rn_armournum;
 	transient cvar rn_armourwidth;
@@ -45,7 +38,6 @@ class HDRNStatusBar:HDStatusBar{
 
 	enum HDRNConsts{
 		RN_ECGN=64,			//samples kept for the ECG trace (1 per tic)
-		RN_FADETICS=10,		//fade out time of the inspect panel
 		RN_QUICKTICS=30,	//quick weapon-only look (after pumping)
 		RN_INVSHOWTICS=105,	//"auto" inventory: how long it stays after a change
 		RN_DMGFLASHTICS=12,
@@ -69,10 +61,6 @@ class HDRNStatusBar:HDStatusBar{
 	int rn_seed;
 	int rn_invtimer;
 	inventory rn_lastinvsel;
-	class<HDPickup> rn_inspectammo;
-	hdweapon rn_inspectwep;
-	double rn_glitchfrac;
-	int rn_glitchnum;
 	int rn_modeflash;
 	double rn_angprev;
 	double rn_angcur;
@@ -108,24 +96,18 @@ class HDRNStatusBar:HDStatusBar{
 		rn_inspectreq=CVar.FindCVar("hdrn_inspectreq");
 		rn_inspecthold=CVar.FindCVar("hdrn_inspecthold");
 		rn_showonpump=CVar.FindCVar("hdrn_showonpump");
-		rn_alwaysweapon=CVar.FindCVar("hdrn_alwaysweapon");
 		rn_ammocolor=CVar.FindCVar("hdrn_ammocolor");
 		rn_ammousepcol=CVar.FindCVar("hdrn_ammousepcol");
 		rn_compass=CVar.FindCVar("hdrn_compass");
 		rn_compasswhen=CVar.FindCVar("hdrn_compasswhen");
 		rn_compasselastic=CVar.FindCVar("hdrn_compasselastic");
 		rn_compasszoom=CVar.FindCVar("hdrn_compasszoom");
-		rn_inspecttime=CVar.FindCVar("hdrn_inspecttime");
 		rn_inspectonreload=CVar.FindCVar("hdrn_inspectonreload");
-		rn_magnumbers=CVar.FindCVar("hdrn_magnumbers");
-		rn_magscale=CVar.FindCVar("hdrn_magscale");
 		rn_dollscale=CVar.FindCVar("hdrn_dollscale");
 		rn_showecg=CVar.FindCVar("hdrn_showecg");
 		rn_showhpnum=CVar.FindCVar("hdrn_showhpnumber");
 		rn_inventory=CVar.FindCVar("hdrn_inventory");
 		rn_showitems=CVar.FindCVar("hdrn_showitems");
-		rn_weaponname=CVar.FindCVar("hdrn_weaponnamemode");
-		rn_firemodeshow=CVar.FindCVar("hdrn_firemodemode");
 		rn_armourstyle=CVar.FindCVar("hdrn_armourstyle");
 		rn_armournum=CVar.FindCVar("hdrn_armournumber");
 		rn_armourwidth=CVar.FindCVar("hdrn_armourwidth");
@@ -166,21 +148,15 @@ class HDRNStatusBar:HDStatusBar{
 
 	//short, weapon-only look (no spare ammo); doesn't cut a full panel short
 	void RN_StartQuickInspect(int len){
-		if(inspecttimer>RN_FADETICS&&!rn_inspectweaponly)return;
+		if(inspecttimer>RN_PFADE&&!rn_inspectweaponly)return;
 		inspecttimer=max(inspecttimer,len);
 		rn_inspectweaponly=true;
-		let w=hdweapon(cplayer.readyweapon);
-		rn_inspectammo=w?w.hdammotype1:null;
-		rn_inspectwep=w;
 	}
 
 	//lock the inspected ammo to the weapon held when the key was pressed,
 	//so switching weapons doesn't change what's being shown
 	void RN_StartInspect(int len){
 		inspecttimer=len;
-		let w=hdweapon(cplayer.readyweapon);
-		rn_inspectammo=w?w.hdammotype1:null;
-		rn_inspectwep=w;
 		rn_inspectweaponly=false;
 	}
 
@@ -197,7 +173,7 @@ class HDRNStatusBar:HDStatusBar{
 		//inspect ammo key: pressing sets hdrn_inspectreq (show + weapon motion);
 		//while it's held, hdrn_inspecthold keeps the panel up, and the
 		//fade-out timer only starts counting once it's released
-		int inspectlength=int(clamp(rn_inspecttime?rn_inspecttime.GetFloat():3.,0.5,30.)*TICRATE);
+		int inspectlength=RN_T_INSPECT;
 		if(rn_inspectreq&&rn_inspectreq.GetInt()){
 			rn_inspectreq.SetInt(0);
 			RN_StartInspect(inspectlength);
@@ -320,15 +296,6 @@ class HDRNStatusBar:HDStatusBar{
 		rn_lastinvsel=cplayer.mo.invsel;
 		if(rn_invtimer>0)rn_invtimer--;
 
-		//BFG: keep its batteries on screen while charging (holding fire)
-		let bfgw=hdweapon(cplayer.readyweapon);
-		if(bfgw&&bfgw is "BFG9K"&&(cplayer.cmd.buttons&BT_ATTACK)){
-			inspecttimer=max(inspecttimer,RN_FADETICS+4);
-			rn_inspectwep=bfgw;
-			rn_inspectammo=bfgw.hdammotype1;
-			rn_inspectweaponly=false;
-		}
-
 		//flash the fire mode label when it changes (not when switching weapons)
 		let fmw=hdweapon(cplayer.readyweapon);
 		string fmnow=RN_FireMode(fmw);
@@ -368,9 +335,6 @@ class HDRNStatusBar:HDStatusBar{
 			rn_cmpvel=rn_cmpvel*(1.-damp)+diff*k;
 			rn_angcur+=rn_cmpvel;
 		}
-
-		//jumpy fill for a ZM66 with a refilled (dirty) mag
-		rn_glitchnum=10+int(RN_Rand()*90);	//same range HD uses
 	}
 
 
@@ -464,12 +428,12 @@ class HDRNStatusBar:HDStatusBar{
 		RN_DrawPaperdoll(alf);
 		screen.SetOffset(so.x,so.y);
 
-		RN_DrawAmmoPanel();
+		RN_DrawWeaponReadout();
 		RN_DrawTopRight();
 
 		//ammo panel, bottom right (replaces the old bottom-centre panel)
 		so=RN_AddOffset(-sm.x,-sm.y);
-		RN_DrawAmmoPanel2();
+		RN_DrawAmmoPanel();
 		screen.SetOffset(so.x,so.y);
 
 		//compass, top centre
@@ -780,13 +744,13 @@ class HDRNStatusBar:HDStatusBar{
 		bool menuwep=RN_IsMenuWeapon(hdw);
 
 		//HD shows the reserve ammo (spare mags + count) next to the readout
-		//only while hudlevel==1; hide it, the inspect key does that job now
+		//only while hudlevel==1; hide it, the ammo panel does that job now
 		int oldhudlevel=hudlevel;
 		if(!menuwep&&hudlevel==1)hudlevel=0;
 
 		vector2 sm=RN_SafeMargins();
 		if(RN_ReplacesReadout(hdw)){
-			//nothing: this weapon's ammo is shown by the inspect panel
+			//nothing: this weapon's ammo is shown by the ammo panel
 		}else if(menuwep){
 			drawweaponstatus(w);
 		}else if(RN_IsCentredWeapon(hdw)){
@@ -810,14 +774,6 @@ class HDRNStatusBar:HDStatusBar{
 		beginhud(forcescaled:false);
 	}
 
-	//alpha for a label with mode 0 = off, 1 = always, 2 = only while checking
-	//the ammo (follows the inspect panel's fade)
-	double RN_LabelAlpha(int mode,bool force){
-		if(mode<=0)return 0;
-		if(mode==1||force)return 1;
-		return inspecttimer>0?clamp(inspecttimer/double(RN_FADETICS),0.,1.):0;
-	}
-
 	//where HD's weapon readout goes (bottom left, above the BPM number).
 	//HD readouts reach ~40 units left of their origin, so the origin goes
 	//42 units right of the BPM's left edge: the readout lines up with it.
@@ -829,7 +785,7 @@ class HDRNStatusBar:HDStatusBar{
 		return ex+42,-(17+14*ds),ex;
 	}
 
-	void RN_DrawAmmoPanel(){
+	void RN_DrawWeaponReadout(){
 		let w=cplayer.readyweapon;
 		if(!w||w==WP_NOCHANGE)return;
 		let hdw=hdweapon(w);
@@ -838,24 +794,6 @@ class HDRNStatusBar:HDStatusBar{
 
 		vector2 sm=RN_SafeMargins();
 		vector2 so;
-
-		//weapon name, above the readout
-		so=RN_AddOffset(sm.x,-sm.y);
-		//(each one: off / always / only while checking the ammo)
-		double namealf=RN_LabelAlpha(rn_weaponname?rn_weaponname.GetInt():2,false);
-		//(not for the ammo panel's weapons: the weapon list shows the name)
-		if(namealf>0&&!RN_PanelWeapon(hdw)){
-			double ax,ay,ex;
-			[ax,ay,ex]=RN_ReadoutAnchor();
-			drawstring(
-				pnewsmallfont,w.GetTag(),
-				(ex,ay-24),DI_SCREEN_LEFT_BOTTOM|DI_TEXT_ALIGN_LEFT,
-				Font.CR_WHITE,0.85*namealf,scale:(0.5,0.5)
-			);
-		}
-		//(the fire mode is shown by the ammo panel's fire mode column now)
-		screen.SetOffset(so.x,so.y);
-
 		//weapon sprite (bottom right, above the inventory)
 		so=RN_AddOffset(-sm.x,-sm.y);
 		if(
@@ -955,18 +893,8 @@ class HDRNStatusBar:HDStatusBar{
 
 
 	// ------------------------------------------------------------
-	// Magazine inspection (bottom centre)
+	// Ammo colour (used by the ammo panel)
 	// ------------------------------------------------------------
-	string,double,double RN_MagShape(class<Inventory> t){
-		//subclasses first
-		if((class<HD9mMag30>)(t))return "HRNMGC",9.,27.;
-		if((class<HD9mMag15>)(t))return "HRNMGB",8.,20.;
-		if((class<HD7mClip>)(t))return "HRNMGE",8.,22.;
-		if((class<HD7mMag>)(t))return "HRNMGA",12.,27.;
-		if((class<HD4mMag>)(t))return "HRNMGA",12.,27.;
-		if((class<HDBattery>)(t))return "HRNMGD",12.,20.;
-		return "HRNMGC",9.,27.;
-	}
 	//ammo colour (fill and outline of mags, rounds, cells, shells...):
 	//a chosen colour, or the player's colour like HD's own ammo bars
 	color RN_AmmoFill(){
@@ -978,434 +906,6 @@ class HDRNStatusBar:HDStatusBar{
 	color RN_AmmoLine(){
 		color c=RN_AmmoFill();
 		return color(255,int(c.r*0.95),int(c.g*0.95),int(c.b*0.95));
-	}
-
-	//draws a silhouette filled from the bottom up by "frac"
-	void RN_DrawFilledShape(
-		string shp,vector2 pos,double sc,double mw,double mh,
-		double frac,double alf,int sflags,
-		color fillcol=0,color linecol=0
-	){
-		//0 = the configurable ammo colour
-		if(fillcol==0)fillcol=RN_AmmoFill();
-		if(linecol==0)linecol=RN_AmmoLine();
-		vector2 tsc=(sc,sc)*0.25;
-		int fl=sflags|DI_ITEM_LEFT_TOP;
-		DrawImage(shp.."F",pos,fl,alf*0.4,scale:tsc,col:color(255,18,18,18));
-		if(frac>0.){
-			double bodyh=mh-sc*2;
-			int cx,cy,cw,ch;
-			[cx,cy,cw,ch]=screen.GetClipRect();
-			SetClipRect(pos.x-1,pos.y+sc+bodyh*(1.-frac),mw+2,bodyh*frac+sc+1,sflags);
-			DrawImage(shp.."F",pos,fl,alf,scale:tsc,col:fillcol);
-			screen.SetClipRect(cx,cy,cw,ch);
-		}
-		DrawImage(shp.."O",pos,fl,alf*0.9,scale:tsc,col:linecol);
-	}
-
-	// ------------------------------------------------------------
-	// Inspect panel: a row of items (bottom centre), built per weapon.
-	// Groups are separated by a wider gap:
-	//   [what's in the gun] [spare primary ammo] [spare secondary ammo]
-	// ------------------------------------------------------------
-	enum HDRNItemTypes{
-		RN_IT_FILL=0,		//silhouette filled bottom-up (mags, cells)
-		RN_IT_ROUND=1,		//chambered round
-		RN_IT_GREN=2,		//rifle grenade
-		RN_IT_TEXT=3,		//"xN"
-		RN_IT_ICON=4,		//inventory icon of an item class
-		RN_IT_STACK=5,		//column of small boxes (queued mags), bottom-up
-		RN_IT_SHELL=6,		//shotgun shell: hull = tube, brass = chamber
-		RN_IT_SADDLE=7,		//side saddle shells: 2 columns of 6 small boxes
-
-		RN_ST_NORMAL=0,		//fill styles
-		RN_ST_DIRTY=1,		//red, jumpy fill
-		RN_ST_EMPTYSLOT=2,	//no mag/cell in this slot: faint outline
-		RN_ST_LIVE=1,		//round/grenade styles
-		RN_ST_SPENT=0,
-
-		RN_EX_HARNESS=512,	//extra: "harness" label above
-		RN_EX_JAM=1024,		//extra: weapon jammed (red stripes)
-		RN_STACKCELLH=11,	//height of the small battery on top of a stack
-	}
-	const RN_SHELLSCALE=1.6;	//shotgun shell drawn bigger than its texture
-	const RN_SADDLESCALE=0.8;	//side saddle boxes
-	array<int> rn_ittype;
-	array<string> rn_ittex;
-	array<double> rn_itw;
-	array<double> rn_ith;
-	array<double> rn_itfrac;
-	array<int> rn_itstyle;
-	array<int> rn_itnum;
-	array<int> rn_itnumcol;
-	array<int> rn_itgroup;
-	array<int> rn_itextra;
-
-	void RN_ClearItems(){
-		rn_ittype.clear();rn_ittex.clear();rn_itw.clear();rn_ith.clear();
-		rn_itfrac.clear();rn_itstyle.clear();rn_itnum.clear();rn_itnumcol.clear();
-		rn_itgroup.clear();rn_itextra.clear();
-	}
-	void RN_AddItem(
-		int type,string tex,double w,double h,int group,
-		double frac=0,int style=0,int num=-1,int numcol=Font.CR_WHITE,int extra=0
-	){
-		rn_ittype.push(type);rn_ittex.push(tex);rn_itw.push(w);rn_ith.push(h);
-		rn_itfrac.push(frac);rn_itstyle.push(style);rn_itnum.push(num);
-		rn_itnumcol.push(numcol);rn_itgroup.push(group);rn_itextra.push(extra);
-	}
-	//a mag/cell silhouette; frac<0 = slot without a mag
-	void RN_AddMag(class<Inventory> magtype,double frac,int group,int style=0,int num=-1,int numcol=Font.CR_WHITE,int extra=0){
-		string shp;double uw,uh;
-		[shp,uw,uh]=RN_MagShape(magtype);
-		if(frac<0){style=RN_ST_EMPTYSLOT;frac=0;}
-		RN_AddItem(RN_IT_FILL,shp,uw+2,uh+2,group,frac,style,num,numcol,extra);
-	}
-
-	//spare ammo of one type, as its own group
-	void RN_AddSpares(class<HDPickup> t,int group){
-		if(!t)return;
-		bool numbers=rn_magnumbers&&rn_magnumbers.GetBool();
-		let magtype=(class<HDMagAmmo>)(t);
-		if(magtype){
-			let mm=hdmagammo(hpl.findinventory(magtype));
-			if(!mm)return;
-			int full=max(1,mm.GetMagHudCount(mm.maxperunit));
-			for(int i=0;i<mm.mags.size();i++){
-				int cnt=mm.GetMagHudCount(mm.mags[i]);
-				RN_AddMag(magtype,clamp(cnt/double(full),0.,1.),group,num:numbers?cnt:-1);
-			}
-			return;
-		}
-		//loose rounds: icon + count (shotgun shells: just the count)
-		let inv=hpl.findinventory(t);
-		int cnt=inv?inv.amount:0;
-		if((class<HDRocketAmmo>)(t))RN_AddItem(RN_IT_GREN,"HRNGRN",6,12,group,style:cnt?RN_ST_LIVE:RN_ST_SPENT);
-		else if(inv&&!(class<HDShellAmmo>)(t))RN_AddItem(RN_IT_ICON,t.getclassname(),10,10,group);
-		RN_AddItem(RN_IT_TEXT,"x"..cnt,NewSmallFont.StringWidth("x"..cnt)*0.6,8,group,style:cnt?1:0);
-	}
-
-	//what's inside the gun, for the weapons we know how to read.
-	//returns: known, whether to also list the secondary ammo
-	bool,bool RN_AddWeaponGroup(hdweapon w){
-		if(!w)return false,false;
-		bool numbers=rn_magnumbers&&rn_magnumbers.GetBool();
-
-		//family 1: one mag + chamber (+ grenade launcher)
-		int lcnt,lcap,lchamber;bool lknown,ldirty;
-		[lknown,lcnt,lcap,lchamber,ldirty]=RN_LoadedMag(w);
-		if(lknown){
-			//the ZM66 has its own digital counter: always shown, in red
-			bool hascounter=w is "ZM66AssaultRifle";
-			int num=-1;
-			if(hascounter||(numbers&&lcnt>=0)){
-				num=ldirty?rn_glitchnum:(max(lcnt,0)+(lchamber==2?1:0));
-			}
-			RN_AddMag(w.hdammotype1,lcnt<0?-1.:lcnt/double(max(1,lcap)),0,
-				ldirty?RN_ST_DIRTY:RN_ST_NORMAL,num,
-				(ldirty||hascounter)?Font.CR_RED:Font.CR_WHITE
-			);
-			RN_AddItem(RN_IT_ROUND,"HRNRND",5,10,0,style:lchamber==2?RN_ST_LIVE:RN_ST_SPENT);
-
-			bool haslauncher=false,glloaded=false;
-			if(w is "ZM66AssaultRifle"){
-				haslauncher=!(w.weaponstatus[0]&ZM66F_NOLAUNCHER);
-				glloaded=!!(w.weaponstatus[0]&ZM66F_GRENADELOADED);
-			}else if(w is "LiberatorRifle"){
-				haslauncher=!(w.weaponstatus[0]&LIBF_NOLAUNCHER);
-				glloaded=!!(w.weaponstatus[0]&LIBF_GRENADELOADED);
-			}
-			if(haslauncher)RN_AddItem(RN_IT_GREN,"HRNGRN",6,12,0,style:glloaded?RN_ST_LIVE:RN_ST_SPENT);
-			return true,haslauncher;
-		}
-
-		//Hunter: one shell. hull fill = shells in the tube, brass = chamber
-		//(white = live, dark = spent, whole shell faint = nothing chambered),
-		//red stripes when jammed; then the side saddle shells
-		if(w is "Hunter"){
-			int tube=max(0,w.weaponstatus[HUNTS_TUBE]);
-			int tsize=max(1,w.weaponstatus[HUNTS_TUBESIZE]);
-			int ch=clamp(w.weaponstatus[HUNTS_CHAMBER],0,2);
-			bool jam=!!(w.weaponstatus[0]&HUNTF_JAMMED);
-			RN_AddItem(RN_IT_SHELL,"HRNSH",9*RN_SHELLSCALE,18.25*RN_SHELLSCALE,0,
-				clamp(tube/double(tsize),0.,1.),ch,
-				numbers?tube+(ch==2?1:0):-1,Font.CR_WHITE,
-				jam?RN_EX_JAM:0
-			);
-			RN_AddItem(RN_IT_SADDLE,"",7*RN_SADDLESCALE*2,4.5*RN_SADDLESCALE*6,0,
-				extra:clamp(w.weaponstatus[SHOTS_SIDESADDLE],0,12)
-			);
-			return true,false;
-		}
-
-		//Vulcanette: feeding mag + a round that drains with the rounds left
-		//in the 5 rotating chambers + the 4 queued mags as stacked boxes
-		if(w is "Vulcanette"){
-			int m=w.weaponstatus[VULCS_MAG1];
-			bool dirty=m>=0&&!!(w.weaponstatus[0]&VULCF_DIRTYMAG);
-			int num=m<0?-1:(dirty?rn_glitchnum:min(m,50));
-			RN_AddMag("HD4mMag",m<0?-1.:min(m,50)/50.,0,
-				dirty?RN_ST_DIRTY:RN_ST_NORMAL,num,Font.CR_RED
-			);
-			int chambered=0;
-			for(int i=0;i<5;i++){
-				if(w.weaponstatus[VULCS_CHAMBER1+i]>0)chambered++;
-			}
-			//column: 4 queued-mag boxes with a small battery on top
-			//(frac = battery charge, -1 = no battery)
-			int queued=0;
-			for(int i=1;i<5;i++){
-				if(w.weaponstatus[VULCS_MAG1+i]>=0)queued|=(1<<(i-1));
-			}
-			int b=w.weaponstatus[VULCS_BATTERY];
-			RN_AddItem(RN_IT_STACK,"HRNBOX",7,4.5*4+RN_STACKCELLH+1,0,
-				frac:b<0?-1.:b/20.,extra:queued
-			);
-			//then the round that drains with the rounds left in the chambers
-			RN_AddItem(RN_IT_FILL,"HRNRND",5,10,0,chambered/5.,chambered?RN_ST_NORMAL:RN_ST_EMPTYSLOT);
-			return true,true;
-		}
-
-		//BFG: two battery slots, both must be full to fire
-		if(w is "BFG9K"){
-			int b1=w.weaponstatus[BFGS_BATTERY];
-			int b2=w.weaponstatus[BFGS_CHARGE];
-			int ex=(w.weaponstatus[0]&BFGF_STRAPPED)?RN_EX_HARNESS:0;
-			RN_AddMag("HDBattery",b1<0?-1.:b1/20.,0,num:(numbers&&b1>=0)?b1:-1,extra:ex);
-			RN_AddMag("HDBattery",b2<0?-1.:b2/20.,0,num:(numbers&&b2>=0)?b2:-1);
-			return true,false;
-		}
-
-		//single battery weapons
-		int bslot=-1;
-		if(w is "ThunderBuster")bslot=TBS_BATTERY;
-		else if(w is "Lumberjack")bslot=CSAWS_BATTERY;
-		if(bslot>=0){
-			int b=w.weaponstatus[bslot];
-			RN_AddMag("HDBattery",b<0?-1.:b/20.,0,num:(numbers&&b>=0)?b:-1);
-			return true,false;
-		}
-		return false,false;
-	}
-
-	void RN_DrawInspect(){
-		//"always show the weapon's ammo": with no panel open, the gun's own
-		//group stays on screen (spares still only show the usual ways)
-		bool always=rn_alwaysweapon&&rn_alwaysweapon.GetBool();
-		bool panel=inspecttimer>0;
-		if(!panel&&!always)return;
-		double alf=panel?clamp(inspecttimer/double(RN_FADETICS),0.,1.):0.;
-		double walf=always?1.:alf;	//alpha of the weapon's own group
-		int sflags=DI_SCREEN_CENTER_BOTTOM;
-
-		//build the row
-		RN_ClearItems();
-		hdweapon lw;
-		bool weaponly;
-		if(panel){
-			lw=rn_inspectwep;
-			if(lw&&lw.owner!=hpl)lw=null;
-			weaponly=rn_inspectweaponly;
-		}else{
-			lw=hdweapon(cplayer.readyweapon);
-			weaponly=true;
-		}
-		bool known,showammo2;
-		[known,showammo2]=RN_AddWeaponGroup(lw);
-		if(!panel&&!known)return;
-		if(panel&&(!weaponly||!known)){
-			RN_AddSpares(rn_inspectammo,1);
-			if(known&&showammo2&&lw.hdammotype2)RN_AddSpares(lw.hdammotype2,2);
-		}
-
-		int n=rn_ittype.size();
-		if(n<1){
-			drawstring(
-				pnewsmallfont,StringTable.Localize(rn_inspectammo?"$HDRN_NOMAGS":"$HDRN_NOAMMO"),
-				(0,-16),sflags|DI_TEXT_ALIGN_CENTER,
-				Font.CR_DARKGRAY,alf,scale:(0.5,0.5)
-			);
-			return;
-		}
-
-		//layout
-		//(the slider is shifted by +0.3: 1.0 on the menu = 0.7 internal size)
-		double sc=rn_magscale?clamp(rn_magscale.GetFloat()-0.3,0.2,3.):0.7;
-		double gap=3;
-		array<double> gaps;
-		double total=0;
-		for(int i=0;i<n;i++){
-			double g=0;
-			if(i>0){
-				//new group: wide gap, except a lone "xN" which sits closer
-				if(rn_itgroup[i]!=rn_itgroup[i-1])g=rn_ittype[i]==RN_IT_TEXT?gap:gap*3;
-				else if(
-					rn_ittype[i]==RN_IT_ROUND||rn_ittype[i]==RN_IT_GREN
-					||rn_ittype[i]==RN_IT_TEXT||rn_ittype[i]==RN_IT_STACK
-					||rn_ittype[i]==RN_IT_SADDLE
-					||rn_ittex[i]=="HRNRND"
-				)g=gap*0.5;
-				else g=gap;
-			}
-			gaps.push(g);
-			total+=g+rn_itw[i];
-		}
-		double maxw=220;
-		if(total*sc>maxw)sc=max(0.35,maxw/total);
-		double x=-total*sc*0.5;
-		double bottom=-3;	//almost touching the bottom of the screen
-
-		color afill=RN_AmmoFill();
-		color aline=RN_AmmoLine();
-		for(int i=0;i<n;i++){
-			double ia=rn_itgroup[i]==0?walf:alf;
-			x+=gaps[i]*sc;
-			double w=rn_itw[i]*sc;
-			double h=rn_ith[i]*sc;
-			vector2 pos=(x,bottom-h);
-			int fl=sflags|DI_ITEM_LEFT_TOP;
-			vector2 tsc=(sc,sc)*0.25;
-			int type=rn_ittype[i];
-			int st=rn_itstyle[i];
-			int ex=rn_itextra[i];
-			double labely=pos.y;
-
-			if(type==RN_IT_FILL){
-				string tex=rn_ittex[i];
-				if(st==RN_ST_EMPTYSLOT){
-					DrawImage(tex.."O",pos,fl,ia*0.3,scale:tsc);
-				}else if(st==RN_ST_DIRTY){
-					//dirty mag: amount unknown, so the whole mag gets the
-					//lost-max-health stripes, pulsing slowly
-					//solid dark-stripe colour underneath, so only the lighter
-					//stripes fade in and out (strong pulse: ~0 to full)
-					double pulse=0.05+0.95*(0.5+0.5*sin(gametic*6.));
-					DrawImage(tex.."F",pos,fl,ia,scale:tsc,col:color(255,34,11,11));
-					DrawImage(tex.."X",pos,fl,ia*pulse,scale:tsc);
-					DrawImage(tex.."O",pos,fl,ia*0.9,scale:tsc,col:color(255,225,60,50));
-				}else RN_DrawFilledShape(tex,pos,sc,w,h,rn_itfrac[i],ia,sflags);
-			}else if(type==RN_IT_ROUND||type==RN_IT_GREN){
-				//absent (nothing in the chamber/launcher) = faint outline,
-				//same as a mag slot with no mag in it
-				string tex=rn_ittex[i];
-				if(st==RN_ST_LIVE){
-					DrawImage(tex.."F",pos,fl,ia,scale:tsc,col:afill);
-					DrawImage(tex.."O",pos,fl,ia*0.9,scale:tsc,col:aline);
-				}else DrawImage(tex.."O",pos,fl,ia*0.3,scale:tsc);
-			}else if(type==RN_IT_TEXT){
-				drawstring(
-					pnewsmallfont,rn_ittex[i],
-					(x,bottom-NewSmallFont.GetHeight()*0.6*sc),
-					sflags|DI_TEXT_ALIGN_LEFT,
-					st?Font.CR_WHITE:Font.CR_DARKGRAY,ia,scale:(0.6,0.6)*sc
-				);
-			}else if(type==RN_IT_ICON){
-				let inv=hpl.findinventory((class<Inventory>)(rn_ittex[i]));
-				if(inv)drawinventoryicon(inv,(x+w*0.5,bottom),sflags|DI_ITEM_CENTER_BOTTOM,ia);
-			}
-
-			//shotgun shell (drawn bigger, about the size of a rifle mag)
-			if(type==RN_IT_SHELL){
-				double ssc=sc*RN_SHELLSCALE;
-				double pxs=0.25*ssc;	//HUD units per texture pixel
-				tsc=(ssc,ssc)*0.25;
-				bool jam=!!(ex&RN_EX_JAM);
-				if(st==0&&!jam){
-					//nothing chambered: whole shell faint, but the tube
-					//still shows how many shells are loaded
-					DrawImage("HRNSHTF",pos,fl,ia*0.15,scale:tsc,col:color(255,18,18,18));
-					double topy=pos.y+(51-45*rn_itfrac[i])*pxs;
-					int cx,cy,cw,ch;
-					[cx,cy,cw,ch]=screen.GetClipRect();
-					SetClipRect(pos.x-1,topy,w+2,pos.y+h-topy+1,sflags);
-					DrawImage("HRNSHTF",pos,fl,ia*0.35,scale:tsc,col:afill);
-					screen.SetClipRect(cx,cy,cw,ch);
-					DrawImage("HRNSHOF",pos,fl,ia*0.3,scale:tsc);
-				}else{
-					DrawImage("HRNSHTF",pos,fl,ia*0.4,scale:tsc,col:color(255,18,18,18));
-					DrawImage("HRNSHBF",pos,fl,ia*0.4,scale:tsc,col:color(255,18,18,18));
-					//tube fill line (hull interior is texture rows 6..50)
-					double topy=pos.y+(51-45*rn_itfrac[i])*pxs;
-					int cx,cy,cw,ch;
-					[cx,cy,cw,ch]=screen.GetClipRect();
-					SetClipRect(pos.x-1,topy,w+2,pos.y+h-topy+1,sflags);
-					if(jam){
-						//filled tube + chamber in pulsing red stripes
-						double pulse=0.05+0.95*(0.5+0.5*sin(gametic*6.));
-						DrawImage("HRNSHKF",pos,fl,ia,scale:tsc,col:color(255,34,11,11));
-						DrawImage("HRNSHXF",pos,fl,ia*pulse,scale:tsc);
-					}else{
-						DrawImage("HRNSHTF",pos,fl,ia,scale:tsc,col:afill);
-					}
-					screen.SetClipRect(cx,cy,cw,ch);
-					if(jam){
-						//(the brass is below the fill line, so it's always striped)
-						DrawImage("HRNSHJF",pos,fl,ia*0.9,scale:tsc,col:color(255,225,60,50));
-					}else{
-						if(st==2)DrawImage("HRNSHBF",pos,fl,ia,scale:tsc,col:afill);
-						DrawImage("HRNSHOF",pos,fl,ia*0.9,scale:tsc,col:aline);
-					}
-				}
-			}
-
-			//side saddle shells: 2 columns of 6, bottom-up, left column first
-			if(type==RN_IT_SADDLE){
-				double bs=sc*RN_SADDLESCALE;
-				double bw=7*bs,bh=4.5*bs;
-				vector2 bsc=(bs,bs)*0.25;
-				for(int k=0;k<12;k++){
-					vector2 bp=(x+(k/6)*bw,bottom-bh*((k%6)+1));
-					if(k<ex){
-						DrawImage("HRNBOXF",bp,fl,ia,scale:bsc,col:afill);
-						DrawImage("HRNBOXO",bp,fl,ia*0.9,scale:bsc,col:aline);
-					}else DrawImage("HRNBOXO",bp,fl,ia*0.3,scale:bsc);
-				}
-			}
-
-			//stacked boxes, bottom-up (Vulcanette's queued mags),
-			//with the battery shrunk to the column's width on top
-			if(type==RN_IT_STACK){
-				double bh=4.5*sc;
-				for(int k=0;k<4;k++){
-					vector2 bp=(x,bottom-bh*(k+1));
-					if(ex&(1<<k)){
-						DrawImage("HRNBOXF",bp,fl,ia,scale:tsc,col:afill);
-						DrawImage("HRNBOXO",bp,fl,ia*0.9,scale:tsc,col:aline);
-					}else DrawImage("HRNBOXO",bp,fl,ia*0.3,scale:tsc);
-				}
-				double cs=sc*0.5;		//cell texture is 14x22 units -> 7 wide
-				double cw=14*cs,chh=RN_STACKCELLH*sc;
-				vector2 cp=(x,bottom-bh*4-1*sc-chh);
-				double bfrac=rn_itfrac[i];
-				if(bfrac<0)DrawImage("HRNMGDO",cp,fl,ia*0.3,scale:(cs,cs)*0.25);
-				else RN_DrawFilledShape("HRNMGD",cp,cs,cw,chh,bfrac,ia,sflags);
-			}
-
-			//number above
-			int num=rn_itnum[i];
-			if(num>=0){
-				string tx=FormatNumber(num);
-				double tws=NewSmallFont.StringWidth(tx);
-				double tsz=tws>0?min(0.42,(w+gap*sc*0.8)/tws):0.42;
-				drawstring(
-					pnewsmallfont,tx,
-					(x+w*0.5,labely-NewSmallFont.GetHeight()*tsz-1),
-					sflags|DI_TEXT_ALIGN_CENTER,
-					rn_itnumcol[i],ia*0.9,scale:(tsz,tsz)
-				);
-				labely-=NewSmallFont.GetHeight()*tsz+1;
-			}
-
-			//BFG harness label
-			if(ex&RN_EX_HARNESS)drawstring(
-				pnewsmallfont,StringTable.Localize("$HDRN_HARNESS"),
-				(x,labely-NewSmallFont.GetHeight()*0.4-1),
-				sflags|DI_TEXT_ALIGN_LEFT,
-				Font.CR_GOLD,ia*0.9,scale:(0.4,0.4)
-			);
-
-			x+=w;
-		}
 	}
 
 	// ------------------------------------------------------------

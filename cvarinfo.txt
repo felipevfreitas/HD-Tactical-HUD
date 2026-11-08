@@ -1,18 +1,13 @@
 // Tactical HUD (client-side settings)
 nosave bool hdrn_enable=true;
 nosave noarchive int hdrn_inspectreq=0;
-nosave float hdrn_inspecttime=3.0;
 nosave bool hdrn_inspectonreload=true;
-nosave bool hdrn_magnumbers=false;
 nosave bool hdrn_ap_showempty=false;
-nosave float hdrn_magscale=1.0;
 nosave float hdrn_dollscale=1.0;
 nosave bool hdrn_showecg=true;
 nosave bool hdrn_showhpnumber=false;
 nosave int hdrn_inventory=2;
 nosave bool hdrn_showitems=true;
-nosave int hdrn_weaponnamemode=2;
-nosave int hdrn_firemodemode=2;
 nosave int hdrn_armourstyle=1;
 nosave bool hdrn_armournumber=false;
 nosave int hdrn_armourwidth=1;
@@ -24,7 +19,6 @@ nosave int hdrn_safeaspect=0;
 user float hdrn_inspectdrop=30;
 nosave noarchive int hdrn_inspecthold=0;
 nosave bool hdrn_showonpump=true;
-nosave bool hdrn_alwaysweapon=false;
 nosave color hdrn_ammocolor="f0 f0 f0";
 nosave bool hdrn_ammousepcol=false;
 

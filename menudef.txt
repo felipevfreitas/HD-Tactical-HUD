@@ -21,13 +21,6 @@ OptionValue "HDRNAspects"
 	4, "21:9"
 }
 
-OptionValue "HDRNShowModes"
-{
-	0, "$HDRN_INV_OFF"
-	1, "$HDRN_INV_ON"
-	2, "$HDRN_SHOW_CHECKING"
-}
-
 OptionValue "HDRNCompassStyles"
 {
 	0, "$HDRN_INV_OFF"
@@ -65,9 +58,6 @@ OptionMenu "HDRNOptions"
 	StaticText "$HDRN_HDR_AMMO", "Gold"
 	Control "$HDRN_KEY_INSPECT", "+hdrn_inspect"
 	Option "$HDRN_AP_SHOWEMPTY", "hdrn_ap_showempty", "OnOff"
-	Option "$HDRN_ALWAYSWEAPON", "hdrn_alwaysweapon", "OnOff"
-	Option "$HDRN_MAGNUMBERS", "hdrn_magnumbers", "OnOff"
-	Slider "$HDRN_MAGSCALE", "hdrn_magscale", 0.5, 2.0, 0.1, 1
 	Option "$HDRN_AMMOUSEPCOL", "hdrn_ammousepcol", "OnOff"
 	StaticText ""
 	StaticText "$HDRN_HDR_HEALTH", "Gold"
@@ -91,14 +81,11 @@ OptionMenu "HDRNAdvanced"
 	Slider "$HDRN_SAFEY", "hdrn_safey", 0, 30, 0.5, 1
 	StaticText ""
 	StaticText "$HDRN_HDR_AMMO", "Gold"
-	Slider "$HDRN_INSPECTTIME", "hdrn_inspecttime", 1, 10, 0.5, 1
 	Option "$HDRN_INSPECTANIM", "hdrn_inspectanim", "OnOff"
 	Slider "$HDRN_INSPECTANIMSPD", "hdrn_inspectanimspeed", 0.5, 4.0, 0.25, 2
 	Slider "$HDRN_INSPECTDROP", "hdrn_inspectdrop", 0, 100, 5, 0
 	Option "$HDRN_INSPECTRELOAD", "hdrn_inspectonreload", "OnOff"
 	Option "$HDRN_SHOWONPUMP", "hdrn_showonpump", "OnOff"
-	Option "$HDRN_WEAPONNAME", "hdrn_weaponnamemode", "HDRNShowModes"
-	Option "$HDRN_FIREMODESHOW", "hdrn_firemodemode", "HDRNShowModes"
 	StaticText ""
 	StaticText "$HDRN_HDR_HEALTH", "Gold"
 	Option "$HDRN_SHOWHPNUM", "hdrn_showhpnumber", "OnOff"

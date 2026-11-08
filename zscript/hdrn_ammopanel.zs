@@ -444,7 +444,7 @@ extend class HDRNStatusBar{
 	// ------------------------------------------------------------
 	// draw
 	// ------------------------------------------------------------
-	void RN_DrawAmmoPanel2(){
+	void RN_DrawAmmoPanel(){
 		let w=RN_DispWeapon();
 		double maxalf=max(rn_apalf,max(rn_fmalf,rn_wlalf));
 		if(maxalf<=0.)return;
@@ -530,29 +530,22 @@ extend class HDRNStatusBar{
 			}
 			RN_TextRightAt(tin,rx,numy,numS,incol,inalf,fl);
 
-			//chamber bar above the in-gun number: long part = live shell,
-			//short part = anything in the chamber (live or spent)
+			//chamber bar above the in-gun number, always the same size
+			//(right-aligned with it): long part = live round, short part =
+			//anything in the chamber (live or spent)
 			double bary=numy-2.2;
+			double barw=8.;
 			if(rn_acyl.size()>0){
-				//revolver: one segment per chamber (bright = live, dim = spent, faint = empty)
-				int nc=rn_acyl.size();
-				double barw=max(nc*1.6,win);
-				double segw=(barw-(nc-1)*0.5)/nc;
-				double bx=rx-barw;
-				for(int i=0;i<nc;i++){
-					int cs=rn_acyl[i];
-					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),bx+i*(segw+0.5),bary,segw,0.8,fl);
-				}
+				//revolver: the number is enough, no bar
 			}else if(rn_adouble){
 				//double barrel: one half per barrel (bright = live, dim = spent, faint = empty)
-				double barw=max(6.,win);
 				double hw=(barw-1)*0.5;
 				double bx=rx-barw;
 				fill(color(int(255*a*(rn_achamber==2?1.:rn_achamber==1?0.45:0.15)),235,235,235),bx,bary,hw,0.8,fl);
 				fill(color(int(255*a*(rn_achamber2==2?1.:rn_achamber2==1?0.45:0.15)),235,235,235),bx+hw+1,bary,hw,0.8,fl);
 			}else{
-				double longw=(win-1)*0.65,shortw=(win-1)*0.35-1;
-				double bx=rx-win+1;
+				double longw=(barw-1)*0.65,shortw=(barw-1)*0.35;
+				double bx=rx-barw;
 				if(rn_ajam){
 					color jc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
 					fill(jc,bx,bary,longw,0.8,fl);
@@ -618,12 +611,19 @@ extend class HDRNStatusBar{
 	// ------------------------------------------------------------
 	void RN_DrawWeaponList(double bottomy,double a,int fl){
 		array<HDWeapon> list;
+		bool hasgren=false;
 		//slots 1..9, then 0
 		for(int s=1;s<=10;s++){
 			int slot=s%10;
 			for(let item=cplayer.mo.inv;item!=null;item=item.inv){
 				let wp=hdweapon(item);
-				if(!wp||wp.bwimpy_weapon||wp is "NullWeapon"||wp.slotnumber!=slot)continue;
+				if(!wp||wp is "NullWeapon"||wp.slotnumber!=slot)continue;
+				//grenades: one entry only, whatever kinds there are
+				bool gren=wp is "HDGrenadeThrower";
+				if(gren){
+					if(hasgren)continue;
+					hasgren=true;
+				}else if(wp.bwimpy_weapon)continue;
 				list.push(wp);
 			}
 		}

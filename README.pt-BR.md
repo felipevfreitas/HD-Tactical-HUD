@@ -4,7 +4,7 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 
 [English](README.md)
 
-> **Status: 1.1.0, em desenvolvimento.** A parte de munição está sendo **refeita** (novo painel no estilo de jogos táticos no canto inferior direito). Veja o [Roadmap](#roadmap) e o [changelog](CHANGELOG.md).
+> **Status: 1.1.0.** Novo painel de munição no estilo de jogos táticos no canto inferior direito. Veja o [Roadmap](#roadmap) e o [changelog](CHANGELOG.md).
 
 ## Requisitos
 
@@ -33,28 +33,20 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 - **Armadura** no boneco, como **contorno** colorido (1 a 3 px) ou **colete** no tronco. Verde = garrison, azul = de combate. Esvazia com a durabilidade.
 - **ECG** ao lado do boneco, com os batimentos reais do HD e o BPM (dourado/vermelho quando perigoso).
 
-### Munição
-- **Tecla de inspecionar** (segure para manter na tela): mostra embaixo, no centro, o que está **na arma** e depois a **munição reserva**. Cada pente/bateria é uma silhueta que esvazia de cima pra baixo.
-- Também pode abrir ao **recarregar / recarga secundária / descarregar**, só se a arma realmente começar a fazer isso.
-- Opção **"sempre mostrar a munição da arma"** (a reserva continua aparecendo só na checagem).
-- **Movimento de checagem**: a arma abaixa um pouco e sobe (velocidade e profundidade ajustáveis). É só visual, nunca muda o estado da arma.
-- Modo de tiro (SEMI / RAJADA / AUTO / GRANADA, RPM da Vulcanette, modo da Thunder Buster).
-- A cor da munição pode seguir a cor do jogador (o verde do HD).
+### Munição (canto inferior direito)
+Um painel no estilo de jogos táticos, que aparece quando importa e some sozinho:
+- **Pentes**: até 3 pentes (o da arma à direita, com uma barra em cima = bala na câmara), "+" e o total quando há mais de 3. Pente vazio = contorno pontilhado piscando vermelho/branco; arma sem pente = piscando branco; pente "sujo" do ZM66 = listras vermelhas. Pentes reservas vazios ficam escondidos, a não ser que você ligue a opção.
+- **Cartuchos / balas**: "reserva | laterais + na arma" na Hunter e na double barrel, "reserva | na arma" no Boss rifle e no revólver. Barra em cima do número: bala boa / qualquer coisa na câmara (Hunter, Boss), uma metade por cano (double barrel). 0 vermelho quando vazia.
+- **Modo lança-granadas**: granada carregada + reservas. **Granadas de mão**: contagem.
+- **Coluna do modo de tiro** só com os modos da arma.
+- **Lista de armas** (silhuetas) em cima, ao trocar de arma; granadas numa entrada só, com a contagem.
+- Aparece ao trocar de arma, na tecla de inspecionar (segure para manter), ao recarregar/descarregar (só se a arma realmente começar), no pump, ao trocar o modo de tiro (só a coluna do modo). Arma vazia ou travada: aparece no próximo clique de tiro e a munição fica até recarregar ou trocar de arma. Correr/pular/escalar não conta como troca de arma.
+- **Movimento de checagem** opcional na tecla de inspecionar (a arma abaixa um pouco e sobe). Só visual.
 
-Armas com desenho próprio (o HUD de munição do HD fica escondido nelas):
-
-| Arma | O que aparece |
-|---|---|
-| Pistola, SMG, ZM66, Liberator | Pente da arma + bala da câmara (+ lança-granadas). A ZM66 sempre mostra o contador vermelho; pente recarregado ("sujo") fica com listras vermelhas pulsando e número aleatório. |
-| Vulcanette | Pente alimentando (com contador), bateria pequena em cima das 4 caixinhas da fila, bala que esvazia com as 5 câmaras. |
-| BFG 9000 | As duas baterias (+ "ARNÊS"); aparece sozinha enquanto carrega. |
-| Thunder Buster, motosserra | Bateria. |
-| Hunter | Um cartucho: plástico = tubo, metal = cano (branco = novo, escuro = gasto, transparente = vazio), listras vermelhas quando trava; cartuchos da lateral. Olhada rápida a cada pump. |
-
-As outras armas continuam com o **HUD de munição original do HD**, acima do BPM.
+Vulcanette, BFG, Thunder Buster, motosserra, Brontornis, lança-foguetes, Blooper e armas de outros addons continuam, por enquanto, com o **HUD de munição do HD**, acima do BPM.
 
 ### Inventário e itens
-- Seletor de itens no **canto inferior direito** (desligado / ligado / só ao trocar).
+- Seletor de itens no **canto superior direito** (desligado / ligado / só ao trocar).
 - Chaves e itens vestidos (bolsa de sangue, radsuit…) no **canto superior direito**.
 
 ### Bússola (topo, centro)
@@ -75,12 +67,9 @@ Opções: *Tactical HUD → Centered Magnified Scopes*. O borrão precisa de Ope
 
 ## Roadmap
 
-**Planejado**
-- **Refazer a HUD de munição.** O painel de checagem atual funciona, mas não gostei do visual; ele vai ser redesenhado.
-
 **Ainda falta**
-- Desenho próprio para: **Slayer**, **revólver**, **Boss rifle**, **Brontornis**, **lança-foguetes**, **Blooper** e armas de outros addons (hoje usam o HUD do HD).
-- Informações que sumiram junto com o HUD do HD nas armas suportadas: **nível de zoom da luneta**, **distância do airburst da granada**, **telêmetro da Thunder Buster**, **medidor de dano na parede da motosserra**.
+- Painel de munição para: **Vulcanette**, **BFG**, **Thunder Buster**, **motosserra**, **Brontornis**, **lança-foguetes**, **Blooper** e armas de outros addons (hoje usam o HUD do HD).
+- Informações que sumiram junto com o HUD do HD nas armas suportadas: **zoom / ajuste de queda da luneta do Boss**, **distância do airburst da granada**.
 - A bússola não está ligada ao FOV (as letras não batem exatamente com o mundo).
 
 **Limitações conhecidas**

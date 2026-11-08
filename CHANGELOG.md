@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 — new ammo panel (work in progress)
+## 1.1.0 — new ammo panel
 
 - **New ammo panel** in the bottom right, inspired by tactical shooters:
   label (MAGS / SHELLS / GRENADES), up to 3 mags with the one in the gun on
@@ -27,10 +27,10 @@
   only the fire mode column) and fades out; firing keeps it up and brings it
   back while fading.
 - Inventory selector back in the top right.
-- The old bottom-centre panel is gone. Vulcanette, BFG, Thunder Buster and
-  chainsaw temporarily use HD's own readout again until they get a design.
-  Old inspect-panel options (mag size, numbers, always show...) don't affect
-  the new panel yet.
+- The old bottom-centre inspect panel and its options (inspect time, mag
+  numbers, mag size, always show weapon ammo, weapon name, fire mode label)
+  are removed. Vulcanette, BFG, Thunder Buster and chainsaw use HD's own
+  readout again until they get a design.
 
 ## 1.0.0 — first release
 

@@ -4,7 +4,7 @@ A minimal, tactical-shooter style HUD for **Hideous Destructor**, plus **Centere
 
 [Português (Brasil)](README.pt-BR.md)
 
-> **Status: 1.1.0, work in progress.** The ammo display is being **redone** (new tactical-shooter style panel in the bottom right). See [Roadmap](#roadmap) and the [changelog](CHANGELOG.md).
+> **Status: 1.1.0.** New tactical-shooter style ammo panel in the bottom right. See [Roadmap](#roadmap) and the [changelog](CHANGELOG.md).
 
 ## Requirements
 
@@ -33,28 +33,20 @@ A minimal, tactical-shooter style HUD for **Hideous Destructor**, plus **Centere
 - **Armour** on the doll, as a coloured **outline** (1–3 px) or a **vest** on the torso; green = garrison, blue = battle armour; drains with durability.
 - **ECG** next to the doll, driven by HD's real heartbeat, with BPM (gold/red when dangerous).
 
-### Ammo
-- **Inspect key** (hold to keep it up): shows, at the bottom centre, what's **in the gun** and then the **spare ammo**. Each mag/cell is a silhouette that drains from the top down.
-- Can also open on **reload / secondary reload / unload**, only if the weapon really starts doing it.
-- Optional **"always show the weapon's ammo"** (spares still only on inspect).
-- Visual **mag-check motion**: the weapon lowers a bit and comes back up (speed and depth adjustable). Purely visual, it never changes the weapon's state.
-- Fire mode label (SEMI / BURST / AUTO / GRENADE, Vulcanette RPM, Thunder Buster mode).
-- Ammo colour can follow the player's colour (HD's green).
+### Ammo (bottom right)
+A tactical-shooter style panel, shown when it matters and fading out on its own:
+- **Mags**: up to 3 mags (the one in the gun on the right, with a bar above it = round chambered), "+" and the total when there are more than 3. Empty mag = dotted outline blinking red/white; no mag in the gun = blinking white; refilled ("dirty") ZM66 mag = red stripes. Empty spare mags are hidden unless you turn them on.
+- **Shells / rounds**: "reserve | side saddles + in the gun" for the Hunter and the double barrel, "reserve | in the gun" for the Boss rifle and the revolver. Bar above the number: live round / anything chambered (Hunter, Boss), one half per barrel (double barrel). Red 0 when empty.
+- **Grenade launcher mode**: loaded grenade + spares. **Hand grenades**: count.
+- **Fire mode column** with only the weapon's modes.
+- **Weapon list** (silhouettes) above it when switching weapons; grenades as one entry with a count.
+- Shows on weapon switch, inspect key (hold to keep it), reload/unload (only if the weapon really starts doing it), pump, fire mode change (fire mode column only). Empty or jammed weapon: shows on the next trigger pull and the ammo stays until reloaded or put away. Sprinting/jumping/mantling doesn't count as a weapon switch.
+- Optional visual **mag-check motion** on the inspect key (the weapon lowers a bit and comes back up). Purely visual.
 
-Weapons with their own display (HD's ammo readout is hidden for them):
-
-| Weapon | What's shown |
-|---|---|
-| Pistol, SMG, ZM66, Liberator | Loaded mag + chambered round (+ grenade launcher). ZM66 always shows its red counter; a refilled ("dirty") ZM66 mag shows pulsing red stripes and a garbage number. |
-| Vulcanette | Feeding mag (with counter), small battery on top of the 4 queued-mag boxes, a round that drains with the 5 chambers. |
-| BFG 9000 | Both batteries (+ harness label); shows by itself while charging. |
-| Thunder Buster, Lumberjack (chainsaw) | Battery. |
-| Hunter | One shell: hull = tube, brass = chamber (white = live, dark = spent, faint = empty), red stripes when jammed; side saddles. Quick look after each pump. |
-
-Every other weapon keeps **HD's original ammo readout**, placed above the BPM.
+Vulcanette, BFG, Thunder Buster, chainsaw, Brontornis, rocket launcher, Blooper and other addons' weapons keep **HD's own ammo readout**, above the BPM, for now.
 
 ### Inventory and items
-- Item selector in the **bottom right** (off / on / only when changed).
+- Item selector in the **top right** (off / on / only when changed).
 - Keys and worn items (blood bag, radsuit…) in the **top right**.
 
 ### Compass (top centre)
@@ -75,12 +67,9 @@ Options: *Tactical HUD → Centered Magnified Scopes*. The blur needs OpenGL or 
 
 ## Roadmap
 
-**Planned**
-- **Redo the ammo HUD.** The current inspect panel works, but I don't like how it looks; it will be redesigned.
-
 **Still missing**
-- Own displays for: **Slayer**, **revolver**, **Boss rifle**, **Brontornis**, **rocket launcher**, **Blooper**, and weapons from other addons (they currently fall back to HD's readout).
-- Info that disappeared together with HD's readout on the supported weapons: **scope zoom level**, **grenade airburst distance**, **Thunder Buster range finder**, **chainsaw wall-damage meter**.
+- Ammo panel designs for: **Vulcanette**, **BFG**, **Thunder Buster**, **chainsaw**, **Brontornis**, **rocket launcher**, **Blooper**, and weapons from other addons (they currently fall back to HD's readout).
+- Info that disappeared together with HD's readout on the supported weapons: **Boss scope zoom / drop adjustment**, **grenade airburst distance**.
 - Compass isn't tied to the FOV (its letters don't line up exactly with the world).
 
 **Known limitations**
