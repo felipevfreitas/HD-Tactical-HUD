@@ -63,6 +63,7 @@ extend class HDRNStatusBar{
 	bool rn_ahasfm;
 	transient cvar rn_apshowempty;
 	bool rn_adouble;
+	array<int> rn_acyl;	//revolver: per chamber 0 empty / 1 spent / 2 live
 	bool rn_aempty;		//nothing left to fire
 	bool rn_lastatk,rn_wasempty;
 	int rn_achamber2;
@@ -169,6 +170,8 @@ extend class HDRNStatusBar{
 			||w is "LiberatorRifle"
 			||w is "Hunter"
 			||w is "Slayer"
+			||w is "BossRifle"
+			||w is "HDRevolver"
 			||w is "HDGrenadeThrower"
 		);
 	}
@@ -178,7 +181,7 @@ extend class HDRNStatusBar{
 		rn_ahasfm=false;
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
-		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
+		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;rn_acyl.clear();
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -222,6 +225,41 @@ extend class HDRNStatusBar{
 			rn_aempty=rn_aingun<=0;
 			rn_asad=clamp(w.weaponstatus[SHOTS_SIDESADDLE],0,12);
 			rn_ares=hpl.countinv("HDShellAmmo");
+			return true;
+		}
+
+		//bolt-action rifle: "reserve | in the gun", split chamber bar like the
+		//pump shotgun (chamber 3/4 = stuck case = jammed)
+		if(w is "BossRifle"){
+			rn_akind=RN_AK_SHELLS;
+			rn_alabel="$HDRN_AP_ROUNDS";
+			int ch=w.weaponstatus[BOSSS_CHAMBER];
+			rn_ajam=ch>2;
+			rn_achamber=ch>2?ch-2:clamp(ch,0,2);
+			rn_aingun=clamp(w.weaponstatus[BOSSS_MAG]%100,0,10)+(ch==2?1:0);
+			rn_asad=-1;
+			int res=hpl.countinv("SevenMilAmmo")+hpl.countinv("SevenMilAmmoRecast");
+			let clips=hdmagammo(hpl.findinventory("HD7mClip"));
+			if(clips)for(int i=0;i<clips.mags.size();i++)res+=max(0,clips.mags[i]%100);
+			rn_ares=res;
+			rn_aempty=rn_aingun<=0;
+			return true;
+		}
+
+		//revolver: "reserve | in the cylinder", one bar segment per chamber
+		if(w is "HDRevolver"){
+			rn_akind=RN_AK_SHELLS;
+			rn_alabel="$HDRN_AP_ROUNDS";
+			rn_aingun=0;
+			for(int i=BUGS_CYL1;i<=BUGS_CYL6;i++){
+				int c=w.weaponstatus[i];	//1/3 spent, 2/4 live (9mm / .355)
+				int cs=c<=0?0:(c==2||c==4)?2:1;
+				rn_acyl.push(cs);
+				if(cs==2)rn_aingun++;
+			}
+			rn_asad=-1;
+			rn_ares=hpl.countinv("HDRevolverAmmo");
+			rn_aempty=rn_aingun<=0;
 			return true;
 		}
 
@@ -495,7 +533,17 @@ extend class HDRNStatusBar{
 			//chamber bar above the in-gun number: long part = live shell,
 			//short part = anything in the chamber (live or spent)
 			double bary=numy-2.2;
-			if(rn_adouble){
+			if(rn_acyl.size()>0){
+				//revolver: one segment per chamber (bright = live, dim = spent, faint = empty)
+				int nc=rn_acyl.size();
+				double barw=max(nc*1.6,win);
+				double segw=(barw-(nc-1)*0.5)/nc;
+				double bx=rx-barw;
+				for(int i=0;i<nc;i++){
+					int cs=rn_acyl[i];
+					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),bx+i*(segw+0.5),bary,segw,0.8,fl);
+				}
+			}else if(rn_adouble){
 				//double barrel: one half per barrel (bright = live, dim = spent, faint = empty)
 				double barw=max(6.,win);
 				double hw=(barw-1)*0.5;
@@ -516,13 +564,17 @@ extend class HDRNStatusBar{
 			}
 
 			double x=rx-win-1.5;
-			double smy=bottom-pad-8.;
-			RN_TextRightAt("+",x,smy,smlS,Font.CR_WHITE,a*0.8,fl);
-			x-=RN_TextW("+",smlS)+1;
-			string tsad=FormatNumber(rn_asad);
-			RN_TextRightAt(tsad,x,smy,smlS,Font.CR_GRAY,a*0.8,fl);
-			x-=RN_TextW(tsad,smlS)+2;
-			fill(color(int(140*a),235,235,235),x-0.4,smy+0.5,0.6,7,fl);
+			//small numbers sit on the same baseline as the big one
+			//(digits end about 74% down the font's height)
+			double smy=numy+(numS-smlS)*fh*0.74;
+			if(rn_asad>=0){
+				RN_TextRightAt("+",x,smy,smlS,Font.CR_WHITE,a*0.8,fl);
+				x-=RN_TextW("+",smlS)+1;
+				string tsad=FormatNumber(rn_asad);
+				RN_TextRightAt(tsad,x,smy,smlS,Font.CR_GRAY,a*0.8,fl);
+				x-=RN_TextW(tsad,smlS)+2;
+			}else x-=1;
+			fill(color(int(140*a),235,235,235),x-0.4,smy+1.,0.6,5.,fl);
 			x-=2.5;
 			RN_TextRightAt(FormatNumber(rn_ares),x,smy,smlS,Font.CR_GRAY,a*0.7,fl);
 			return;

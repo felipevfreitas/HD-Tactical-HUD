@@ -11,6 +11,9 @@
 - Shotguns: "reserve | side saddles + in the gun", split chamber bar (live /
   anything chambered), red number when jammed. Double barrel: same layout,
   bar split in half, one half per barrel.
+- Boss rifle and revolver: "reserve | in the gun" (ROUNDS); the Boss uses
+  the split chamber bar (jammed = blinking), the revolver one bar segment per
+  chamber (live / spent / empty).
 - Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
 - Empty spare mags are hidden by default (option to show them, as a plain
   dotted outline). A jammed ZM66 behaves like an empty one: shows on the
