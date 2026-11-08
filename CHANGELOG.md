@@ -19,6 +19,14 @@
 - Empty spare mags are hidden by default (option to show them, as a plain
   dotted outline). A jammed ZM66 behaves like an empty one: shows on the
   next click and its chamber bar blinks white / red.
+- Vulcanette: feeding mag with the chamber bar split in 5 (one per chamber),
+  the 4 queued mags as a 2x2 block, vertical battery bar; 2100 / 700 rpm in
+  the fire mode column.
+- Thunder Buster: battery as the mag (CELLS), detonator / scattershot modes.
+  BFG: main battery as the mag, charge battery as a vertical bar.
+- Rocket launcher: "reserve | in the gun", amber chamber bar with HEAT
+  loaded, rocket / grenade modes. Blooper and Brontornis: like the
+  underbarrel launcher.
 - Fire mode column next to it, with only the weapon's modes, stacked from the
   top (blanks at the bottom, with no background); smaller icons.
 - Fixed-size background: long contents just spill out to the left.

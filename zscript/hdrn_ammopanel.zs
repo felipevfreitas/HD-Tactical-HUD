@@ -27,14 +27,20 @@ extend class HDRNStatusBar{
 		RN_WLFADEIN=6,		//weapon list fade-in tics (0.17 s), like Insurgency
 		RN_T_LIST=105,		//weapon list after a switch (3 s)
 		RN_T_SWITCH=150,	//ammo + fire mode after a switch (4.3 s)
-		RN_T_INSPECT=122,
-		RN_T_FMONLY=70,		//fire mode column alone after a mode change (2 s)	//ammo + fire mode on inspect / reload (3.5 s)
+		RN_T_INSPECT=122,	//ammo + fire mode on inspect / reload (3.5 s)
+		RN_T_FMONLY=70,		//fire mode column alone after a mode change (2 s)
 
 		RN_FM_NONE=0,
 		RN_FM_SEMI=1,
 		RN_FM_BURST=2,
 		RN_FM_AUTO=3,
 		RN_FM_PUMP=4,
+		RN_FM_FAST=5,		//Vulcanette 2100 rpm
+		RN_FM_SLOW=6,		//Vulcanette 700 rpm
+		RN_FM_ROCKET=7,		//rocket launcher: rocket
+		RN_FM_GREN=8,		//rocket launcher: grenade
+		RN_FM_DET=9,		//Thunder Buster: detonator
+		RN_FM_SCAT=10,		//Thunder Buster: scattershot
 
 		RN_AK_MAGS=0,		//panel kinds
 		RN_AK_SHELLS=1,
@@ -68,6 +74,11 @@ extend class HDRNStatusBar{
 	bool rn_lastgl;
 	hdweapon rn_lastglwep;
 	int rn_achamber2;
+	array<int> rn_asegs;	//chamber bar split per chamber (Vulcanette): 0 empty / 1 bad / 2 live
+	array<int> rn_aqueue;	//queued mags (Vulcanette): -1 = none
+	double rn_abat;			//vertical battery bar: -2 = none drawn, -1 = no battery, else 0..1
+	bool rn_anobar;			//no chamber bar (cell weapons)
+	bool rn_aheat;			//rocket launcher: HEAT in the chamber
 	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
 
@@ -184,6 +195,12 @@ extend class HDRNStatusBar{
 			||w is "BossRifle"
 			||w is "HDRevolver"
 			||w is "HDGrenadeThrower"
+			||w is "Vulcanette"
+			||w is "ThunderBuster"
+			||w is "BFG9K"
+			||w is "HDRL"
+			||w is "Blooper"
+			||w is "Brontornis"
 		);
 	}
 
@@ -193,6 +210,7 @@ extend class HDRNStatusBar{
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
 		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
+		rn_asegs.clear();rn_aqueue.clear();rn_abat=-2;rn_anobar=false;rn_aheat=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -276,18 +294,42 @@ extend class HDRNStatusBar{
 			return true;
 		}
 
-		//grenade launcher mode (ZM66 / Liberator): loaded grenade + spares
-		bool glmode=
-			(w is "ZM66AssaultRifle"&&(st&ZM66F_GLMODE))
-			||(w is "LiberatorRifle"&&(st&LIBF_GRENADEMODE))
-		;
+		//rocket launcher: rockets are loaded one by one into its internal
+		//magazine, so "reserve | in the gun"; HEAT (secondary reload) goes
+		//straight into the chamber and turns the chamber bar amber
+		if(w is "HDRL"){
+			rn_akind=RN_AK_SHELLS;
+			rn_alabel="$HDRN_AP_ROUNDS";
+			int ch=w.weaponstatus[RLS_CHAMBER];	//0 empty, 1 rocket, 2 HEAT
+			rn_achamber=ch>=1?2:0;
+			rn_aheat=ch>=2;
+			int inmag=(st&RLF_NOMAG)?0:max(0,w.weaponstatus[RLS_MAG]);
+			rn_aingun=inmag+(ch>=1?1:0);
+			rn_asad=-1;
+			rn_ares=hpl.countinv("HDRocketAmmo");
+			rn_aempty=rn_aingun<=0;
+			RN_SetFM(RN_FM_ROCKET,RN_FM_GREN,RN_FM_NONE,(st&RLF_GRENADEMODE)?1:0);
+			return true;
+		}
+
+		//grenade launchers (ZM66 / Liberator underbarrel, Blooper) and the
+		//Brontornis: the loaded one + spares as icons
+		bool glmode=false,loaded=false;
+		int res=0;
+		string gllabel="$HDRN_AP_GRENADES";
+		if(w is "ZM66AssaultRifle"&&(st&ZM66F_GLMODE)){
+			glmode=true;loaded=!!(st&ZM66F_GRENADELOADED);res=hpl.countinv("HDRocketAmmo");
+		}else if(w is "LiberatorRifle"&&(st&LIBF_GRENADEMODE)){
+			glmode=true;loaded=!!(st&LIBF_GRENADELOADED);res=hpl.countinv("HDRocketAmmo");
+		}else if(w is "Blooper"){
+			glmode=true;loaded=!!(st&BLOPF_LOADED);res=hpl.countinv("HDRocketAmmo");
+		}else if(w is "Brontornis"){
+			glmode=true;loaded=w.weaponstatus[BRONS_CHAMBER]==2;res=hpl.countinv("BrontornisRound");
+			gllabel="$HDRN_AP_ROUNDS";
+		}
 		if(glmode){
 			rn_akind=RN_AK_GRENADES;
-			rn_alabel="$HDRN_AP_GRENADES";
-			bool loaded=(w is "ZM66AssaultRifle")
-				?!!(st&ZM66F_GRENADELOADED)
-				:!!(st&LIBF_GRENADELOADED);
-			int res=hpl.countinv("HDRocketAmmo");
+			rn_alabel=gllabel;
 			rn_acur=loaded?1.:-1.;
 			int gshow=loaded?2:3;
 			for(int i=0;i<min(gshow,res);i++)rn_aspare.push(1.);
@@ -301,16 +343,62 @@ extend class HDRNStatusBar{
 		rn_akind=RN_AK_MAGS;
 		rn_alabel="$HDRN_AP_MAGS";
 		int lcnt,lcap,lch;bool lknown,ldirty;
-		[lknown,lcnt,lcap,lch,ldirty]=RN_LoadedMag(w);
+		class<Inventory> magcls=w.hdammotype1;
+		int extra=0;	//more mags/cells in the gun besides the main one
+		if(w is "Vulcanette"){
+			//feeding mag + 5 chambers + 4 queued mags + battery
+			int m=w.weaponstatus[VULCS_MAG1];	//51 = sealed full mag
+			lcnt=m<0?-1:min(m,50);lcap=50;lch=0;
+			ldirty=!!(st&VULCF_DIRTYMAG);
+			bool anylive=false;
+			for(int i=0;i<5;i++){
+				int c=w.weaponstatus[VULCS_CHAMBER1+i];	//1 live, 2+ misfired/broken
+				int cs=c==1?2:c>1?1:0;
+				rn_asegs.push(cs);
+				if(cs==2)anylive=true;
+			}
+			for(int i=1;i<5;i++){
+				int q=w.weaponstatus[VULCS_MAG1+i];
+				rn_aqueue.push(q);
+				if(q>=0)extra++;
+			}
+			int b=w.weaponstatus[VULCS_BATTERY];
+			rn_abat=b<0?-1.:clamp(b/20.,0.,1.);
+			magcls="HD4mMag";
+			rn_alabel="$HDRN_AP_MAGS";
+			rn_aempty=b<=0||(!anylive&&lcnt<=0&&extra==0);
+			RN_SetFM(RN_FM_FAST,RN_FM_SLOW,RN_FM_NONE,(st&VULCF_FAST)?0:1);
+		}else if(w is "ThunderBuster"){
+			int b=w.weaponstatus[TBS_BATTERY];
+			lcnt=b<0?-1:b;lcap=20;lch=0;ldirty=false;
+			rn_anobar=true;
+			magcls="HDBattery";
+			rn_alabel="$HDRN_AP_CELLS";
+			rn_aempty=b<=0;
+			RN_SetFM(RN_FM_DET,RN_FM_SCAT,RN_FM_NONE,(st&TBF_ALT)?1:0);
+		}else if(w is "BFG9K"){
+			//main battery as the "mag", the charge battery as the vertical bar
+			int b=w.weaponstatus[BFGS_BATTERY];
+			int c=w.weaponstatus[BFGS_CHARGE];
+			lcnt=b<0?-1:b;lcap=20;lch=0;ldirty=false;
+			rn_abat=c<0?-1.:clamp(c/20.,0.,1.);
+			if(c>=0)extra++;
+			rn_anobar=true;
+			magcls="HDBattery";
+			rn_alabel="$HDRN_AP_CELLS";
+			rn_aempty=b<=0&&c<=0;
+		}else{
+			[lknown,lcnt,lcap,lch,ldirty]=RN_LoadedMag(w);
+			rn_ajam=w is "ZM66AssaultRifle"&&!!(st&ZM66F_CHAMBERBROKEN);
+			rn_aempty=lch!=2&&lcnt<=0;
+		}
 		rn_acur=lcnt<0?-1.:clamp(lcnt/double(max(1,lcap)),0.,1.);
 		rn_acurdirty=ldirty;
 		rn_achamber=lch;
-		rn_ajam=w is "ZM66AssaultRifle"&&!!(st&ZM66F_CHAMBERBROKEN);
-		rn_aempty=lch!=2&&(lcnt<=0||rn_acur<=0.);
 
 		//spares, fullest first (HD loads a full mag, or else the fullest)
 		int nspare=0;
-		let mm=hdmagammo(hpl.findinventory(w.hdammotype1));
+		let mm=hdmagammo(hpl.findinventory(magcls));
 		if(mm){
 			nspare=mm.mags.size();
 			int full=max(1,mm.GetMagHudCount(mm.maxperunit));
@@ -333,7 +421,7 @@ extend class HDRNStatusBar{
 				cnts.delete(bi);
 			}
 		}
-		rn_atotal=nspare+(lcnt>=0?1:0);
+		rn_atotal=nspare+(lcnt>=0?1:0)+extra;
 		rn_amore=rn_atotal>3;
 
 		//fire modes, slots top->bottom
@@ -447,10 +535,23 @@ extend class HDRNStatusBar{
 			for(int i=0;i<3;i++)fill(c,cx-2.3+i*0.9,cy-2.+i*1.6,bw,bh,fl);
 		}else if(mode==RN_FM_AUTO){
 			for(int i=0;i<5;i++)fill(c,cx-2.6+(i%2)*2.,cy-2.6+i*1.2,bw*0.85,bh*0.9,fl);
-		}else if(mode==RN_FM_PUMP){
+		}else{
+			//modes shown as a short word
+			string t="";
+			if(mode==RN_FM_PUMP)t="$HDRN_AP_PUMP";
+			else if(mode==RN_FM_FAST)t="2100";
+			else if(mode==RN_FM_SLOW)t="700";
+			else if(mode==RN_FM_ROCKET)t="$HDRN_AP_FM_RKT";
+			else if(mode==RN_FM_GREN)t="$HDRN_AP_FM_GRN";
+			else if(mode==RN_FM_DET)t="$HDRN_AP_FM_DET";
+			else if(mode==RN_FM_SCAT)t="$HDRN_AP_FM_SCAT";
+			if(t=="")return;
+			t=StringTable.Localize(t);
 			double s=3./NewSmallFont.GetHeight();
-			string t=StringTable.Localize("$HDRN_AP_PUMP");
-			RN_TextAt(t,cx-RN_TextW(t,s)*0.5,cy-1.5,s,Font.CR_WHITE,alf,fl);
+			//(shrink long words to fit the slot)
+			double tw=RN_TextW(t,s);
+			if(tw>8.)s*=8./tw;
+			RN_TextAt(t,cx-RN_TextW(t,s)*0.5,cy-NewSmallFont.GetHeight()*s*0.5,s,Font.CR_WHITE,alf,fl);
 		}
 	}
 
@@ -562,6 +663,10 @@ extend class HDRNStatusBar{
 					color jc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
 					fill(jc,bx,bary,longw,0.8,fl);
 					fill(jc,bx+longw+1,bary,shortw,0.8,fl);
+				}else if(rn_aheat){
+					color hc=color(int(255*a),235,170,40);
+					fill(hc,bx,bary,longw,0.8,fl);
+					fill(hc,bx+longw+1,bary,shortw,0.8,fl);
 				}else{
 					fill(color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),bx,bary,longw,0.8,fl);
 					fill(color(int(255*a*(rn_achamber>=1?1.:0.22)),235,235,235),bx+longw+1,bary,shortw,0.8,fl);
@@ -595,6 +700,49 @@ extend class HDRNStatusBar{
 		}
 		double icony=bottom-pad-13.;		//icon textures are 7x13 units
 
+		//vertical battery bar on the far right (Vulcanette, BFG's charge)
+		//(same height as the mag's inside: 1.5..11.5 units into the icon)
+		if(rn_abat>-2.){
+			x-=3.;
+			double by=icony+1.,bh=11.,bw=2.;
+			color oc=color(int(255*a*0.9),235,235,235);
+			if(rn_abat<=0.)oc=rn_abat<0.
+				?color(int(255*a*(RN_BlinkPhase()?1.:0.3)),235,235,235)
+				:(RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235));
+			fill(oc,x,by,bw,0.5,fl);
+			fill(oc,x,by+bh-0.5,bw,0.5,fl);
+			fill(oc,x,by+0.5,0.5,bh-1,fl);
+			fill(oc,x+bw-0.5,by+0.5,0.5,bh-1,fl);
+			if(rn_abat>0.){
+				double ih=(bh-1.)*rn_abat;
+				color fc=RN_AmmoFill();
+				fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),x+0.5,by+bh-0.5-ih,bw-1,ih,fl);
+			}
+			x-=1.;
+		}
+
+		//queued mags (Vulcanette): 2 x 2 small squares, the next one to
+		//feed bottom left (closest to the feeding mag)
+		if(rn_aqueue.size()>0){
+			double sq=2.4,gp=0.6;
+			x-=sq*2+gp+0.5;
+			double qy=icony+1.+(11.-(sq*2+gp))*0.5;
+			for(int i=0;i<rn_aqueue.size()&&i<4;i++){
+				int col=i/2,row=1-(i%2);
+				double qx=x+col*(sq+gp),qyy=qy+row*(sq+gp);
+				color fc=RN_AmmoFill();
+				if(rn_aqueue[i]>=0)fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),qx,qyy,sq,sq,fl);
+				else{
+					color dc=color(int(255*a*0.3),235,235,235);
+					fill(dc,qx,qyy,sq,0.4,fl);
+					fill(dc,qx,qyy+sq-0.4,sq,0.4,fl);
+					fill(dc,qx,qyy+0.4,0.4,sq-0.8,fl);
+					fill(dc,qx+sq-0.4,qyy+0.4,0.4,sq-0.8,fl);
+				}
+			}
+			x-=0.5;
+		}
+
 		//the one in the gun (rightmost) + its chamber bar
 		x-=7;
 		if(rn_akind==RN_AK_GRENADES){
@@ -604,10 +752,20 @@ extend class HDRNStatusBar{
 			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony,6,0.8,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
-			//jammed: the chamber bar switches white / red like an empty mag
-			color chc=color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235);
-			if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
-			fill(chc,x+0.5,icony-1.,6,0.8,fl);
+			if(rn_asegs.size()>0){
+				//one segment per chamber (bright = live, dim = bad round, faint = empty)
+				int ns=rn_asegs.size();
+				double sgw=(6.-(ns-1)*0.5)/ns;
+				for(int i=0;i<ns;i++){
+					int cs=rn_asegs[i];
+					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),x+0.5+i*(sgw+0.5),icony-1.,sgw,0.8,fl);
+				}
+			}else if(!rn_anobar){
+				//jammed: the chamber bar switches white / red like an empty mag
+				color chc=color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235);
+				if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
+				fill(chc,x+0.5,icony-1.,6,0.8,fl);
+			}
 		}
 		//spares, right to left
 		for(int i=0;i<rn_aspare.size();i++){

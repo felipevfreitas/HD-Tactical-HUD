@@ -968,6 +968,7 @@ class HDRNStatusBar:HDStatusBar{
 			int fm=w.weaponstatus[HUNTS_FIREMODE];	//0 pump, 1 semi, 2 auto
 			return StringTable.Localize(fm>=2?"$HDRN_FM_AUTO":fm==1?"$HDRN_FM_SEMI":"$HDRN_FM_PUMP");
 		}
+		if(w is "HDRL")return (st&RLF_GRENADEMODE)?"GREN":"RKT";
 		if(w is "ThunderBuster"){
 			return StringTable.Localize((st&TBF_ALT)?"$HDRN_FM_SCATTER":"$HDRN_FM_DETONATOR");
 		}
