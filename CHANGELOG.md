@@ -26,6 +26,7 @@
   the 4 queued mags as a vertical line cut in 4, battery as a vertical line
   that dims as it drains, the chamber bar spanning all three; 2100 / 700 rpm in
   the fire mode column.
+- Chainsaw: battery as the mag, spare batteries as the spares (CELLS).
 - Thunder Buster: battery as the mag (CELLS), detonator / scattershot modes.
   BFG: main battery as the mag, charge battery as a vertical bar,
   chamber bar over both batteries, yellow when strapped to the harness.

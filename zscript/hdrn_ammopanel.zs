@@ -207,6 +207,7 @@ extend class HDRNStatusBar{
 			||w is "HDGrenadeThrower"
 			||w is "Vulcanette"
 			||w is "ThunderBuster"
+			||w is "Lumberjack"
 			||w is "BFG9K"
 			||w is "HDRL"
 			||w is "Blooper"
@@ -386,6 +387,14 @@ extend class HDRNStatusBar{
 			rn_alabel="$HDRN_AP_CELLS";
 			rn_aempty=b<=0;
 			RN_SetFM(RN_FM_DET,RN_FM_SCAT,RN_FM_NONE,(st&TBF_ALT)?1:0);
+		}else if(w is "Lumberjack"){
+			//chainsaw: battery in the saw as the mag, spare batteries as the spares
+			int b=w.weaponstatus[CSAWS_BATTERY];
+			lcnt=b<0?-1:b;lcap=20;lch=0;ldirty=false;
+			rn_anobar=true;
+			magcls="HDBattery";
+			rn_alabel="$HDRN_AP_CELLS";
+			rn_aempty=b<=0;
 		}else if(w is "BFG9K"){
 			//main battery as the "mag", the charge battery as the vertical bar
 			int b=w.weaponstatus[BFGS_BATTERY];

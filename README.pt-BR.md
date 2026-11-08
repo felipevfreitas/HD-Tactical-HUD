@@ -43,7 +43,7 @@ Um painel no estilo de jogos táticos, que aparece quando importa e some sozinho
 - Aparece ao trocar de arma, na tecla de inspecionar (segure para manter), ao recarregar/descarregar (só se a arma realmente começar), no pump, ao trocar o modo de tiro (só a coluna do modo). Arma vazia ou travada: aparece no próximo clique de tiro e a munição fica até recarregar ou trocar de arma. Correr/pular/escalar não conta como troca de arma.
 - **Movimento de checagem** opcional na tecla de inspecionar (a arma abaixa um pouco e sobe). Só visual.
 
-Vulcanette, BFG, Thunder Buster, motosserra, Brontornis, lança-foguetes, Blooper e armas de outros addons continuam, por enquanto, com o **HUD de munição do HD**, acima do BPM.
+Tripwires e armas de outros addons continuam, por enquanto, com o **HUD de munição do HD**, acima do BPM.
 
 ### Inventário e itens
 - Seletor de itens no **canto superior direito** (desligado / ligado / só ao trocar).
@@ -68,7 +68,7 @@ Opções: *Tactical HUD → Centered Magnified Scopes*. O borrão precisa de Ope
 ## Roadmap
 
 **Ainda falta**
-- Painel de munição para: **Vulcanette**, **BFG**, **Thunder Buster**, **motosserra**, **Brontornis**, **lança-foguetes**, **Blooper** e armas de outros addons (hoje usam o HUD do HD).
+- Painel de munição para **tripwires** e armas de outros addons (hoje usam o HUD do HD).
 - Informações que sumiram junto com o HUD do HD nas armas suportadas: **zoom / ajuste de queda da luneta do Boss**, **distância do airburst da granada**.
 - A bússola não está ligada ao FOV (as letras não batem exatamente com o mundo).
 
