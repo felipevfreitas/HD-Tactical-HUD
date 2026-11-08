@@ -713,49 +713,16 @@ extend class HDRNStatusBar{
 		}
 		double icony=bottom-pad-13.;		//icon textures are 7x13 units
 
-		//vertical battery bar on the far right (Vulcanette, BFG's charge)
-		//(same height as the mag's inside: 1.5..11.5 units into the icon)
+		//battery (Vulcanette, BFG's charge): a vertical line like the chamber
+		//bar, on the right of the mag; it dims towards the "nothing in the
+		//chamber" look as it drains (faint = no battery)
 		double batx=0;
 		if(rn_abat>-2.){
-			x-=3.;
+			x-=1.4;
 			batx=x;
-			double by=icony+1.,bh=11.,bw=2.;
-			color oc=color(int(255*a*0.9),235,235,235);
-			if(rn_abat<=0.)oc=rn_abat<0.
-				?color(int(255*a*(RN_BlinkPhase()?1.:0.3)),235,235,235)
-				:(RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235));
-			fill(oc,x,by,bw,0.5,fl);
-			fill(oc,x,by+bh-0.5,bw,0.5,fl);
-			fill(oc,x,by+0.5,0.5,bh-1,fl);
-			fill(oc,x+bw-0.5,by+0.5,0.5,bh-1,fl);
-			if(rn_abat>0.){
-				double ih=(bh-1.)*rn_abat;
-				color fc=RN_AmmoFill();
-				fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),x+0.5,by+bh-0.5-ih,bw-1,ih,fl);
-			}
-			x-=1.;
-		}
-
-		//queued mags (Vulcanette): 2 x 2 small squares, the next one to
-		//feed bottom left (closest to the feeding mag)
-		if(rn_aqueue.size()>0){
-			double sq=2.4,gp=0.6;
-			x-=sq*2+gp+0.5;
-			double qy=icony+1.+(11.-(sq*2+gp))*0.5;
-			for(int i=0;i<rn_aqueue.size()&&i<4;i++){
-				int col=i/2,row=1-(i%2);
-				double qx=x+col*(sq+gp),qyy=qy+row*(sq+gp);
-				color fc=RN_AmmoFill();
-				if(rn_aqueue[i]>=0)fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),qx,qyy,sq,sq,fl);
-				else{
-					color dc=color(int(255*a*0.3),235,235,235);
-					fill(dc,qx,qyy,sq,0.4,fl);
-					fill(dc,qx,qyy+sq-0.4,sq,0.4,fl);
-					fill(dc,qx,qyy+0.4,0.4,sq-0.8,fl);
-					fill(dc,qx+sq-0.4,qyy+0.4,0.4,sq-0.8,fl);
-				}
-			}
-			x-=0.5;
+			double bal=rn_abat<0.?0.1:0.22+0.78*rn_abat;
+			fill(color(int(255*a*bal),235,235,235),x,icony+1.5,0.8,10.,fl);
+			x-=0.6;
 		}
 
 		//the one in the gun (rightmost) + its chamber bar
@@ -767,13 +734,34 @@ extend class HDRNStatusBar{
 			fill(color(int(255*a*(rn_acur>0.?1.:0.22)),235,235,235),x+0.5,icony,6,0.8,fl);
 		}else{
 			RN_MagIcon(x,icony,rn_acur,rn_acurdirty,a,fl);
+			//queued mags (Vulcanette): 2 x 2 small squares on top of the mag,
+			//under the chamber bar; the next one to feed bottom left
+			double cby=icony-1.;
+			if(rn_aqueue.size()>0){
+				double sq=2.,gp=0.5;
+				double qtop=icony+0.6-(sq*2+gp);
+				for(int i=0;i<rn_aqueue.size()&&i<4;i++){
+					int col=i/2,row=1-(i%2);
+					double qx=x+0.5+0.5+col*(sq+gp)+0.25,qyy=qtop+row*(sq+gp);
+					color fc=RN_AmmoFill();
+					if(rn_aqueue[i]>=0)fill(color(int(255*a*0.85),fc.r,fc.g,fc.b),qx,qyy,sq,sq,fl);
+					else{
+						color dc=color(int(255*a*0.3),235,235,235);
+						fill(dc,qx,qyy,sq,0.4,fl);
+						fill(dc,qx,qyy+sq-0.4,sq,0.4,fl);
+						fill(dc,qx,qyy+0.4,0.4,sq-0.8,fl);
+						fill(dc,qx+sq-0.4,qyy+0.4,0.4,sq-0.8,fl);
+					}
+				}
+				cby=qtop-1.2;
+			}
 			if(rn_asegs.size()>0){
 				//one segment per chamber (bright = live, dim = bad round, faint = empty)
 				int ns=rn_asegs.size();
 				double sgw=(6.-(ns-1)*0.5)/ns;
 				for(int i=0;i<ns;i++){
 					int cs=rn_asegs[i];
-					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),x+0.5+i*(sgw+0.5),icony-1.,sgw,0.8,fl);
+					fill(color(int(255*a*(cs==2?1.:cs==1?0.45:0.15)),235,235,235),x+0.5+i*(sgw+0.5),cby,sgw,0.8,fl);
 				}
 			}else if(!rn_anobar){
 				//jammed: the chamber bar switches white / red like an empty mag
@@ -781,7 +769,7 @@ extend class HDRNStatusBar{
 				if(rn_aharness)chc=color(int(255*a*(rn_achamber==2?1.:0.5)),240,200,40);
 				if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
 				//(BFG: over both batteries, the mag and the charge bar)
-				double cbw=rn_abarwide&&rn_abat>-2.?batx+2.-(x+0.5):6.;
+				double cbw=rn_abarwide&&rn_abat>-2.?batx+0.8-(x+0.5):6.;
 				fill(chc,x+0.5,icony-1.,cbw,0.8,fl);
 			}
 		}
