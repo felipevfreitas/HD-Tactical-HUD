@@ -35,7 +35,7 @@ Uma HUD minimalista, no estilo de jogos de tiro táticos, para o **Hideous Destr
 
 ### Munição (canto inferior direito)
 Um painel no estilo de jogos táticos, que aparece quando importa e some sozinho:
-- **Pentes**: até 3 pentes (o da arma à direita, com uma barra em cima = bala na câmara), "+" e o total quando há mais de 3. Pente vazio = contorno pontilhado piscando vermelho/branco; arma sem pente = piscando branco; pente "sujo" do ZM66 = listras vermelhas. Pentes reservas vazios ficam escondidos, a não ser que você ligue a opção.
+- **Pentes**: até 3 pentes (o da arma à direita, com uma barra em cima = bala na câmara), "+" e o total quando algum pente reserva não cabe na tela. Pente vazio = contorno pontilhado piscando vermelho/branco; arma sem pente = piscando branco; pente "sujo" do ZM66 = listras vermelhas. Pentes reservas vazios ficam escondidos, a não ser que você ligue a opção.
 - **Cartuchos / balas**: "reserva | laterais + na arma" na Hunter e na double barrel, "reserva | na arma" no Boss rifle e no revólver. Barra em cima do número: bala boa / qualquer coisa na câmara (Hunter, Boss), uma metade por cano (double barrel). 0 vermelho quando vazia.
 - **Modo lança-granadas**: granada carregada + reservas. **Granadas de mão**: contagem.
 - **Coluna do modo de tiro** só com os modos da arma.
