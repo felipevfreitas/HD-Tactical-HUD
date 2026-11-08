@@ -35,6 +35,8 @@ class HDRNStatusBar:HDStatusBar{
 	transient cvar rn_safex;
 	transient cvar rn_safey;
 	transient cvar rn_safeaspect;
+	transient cvar rn_bghealth;
+	transient cvar rn_bgammo;
 
 	enum HDRNConsts{
 		RN_ECGN=64,			//samples kept for the ECG trace (1 per tic)
@@ -114,6 +116,8 @@ class HDRNStatusBar:HDStatusBar{
 		rn_safex=CVar.FindCVar("hdrn_safex");
 		rn_safey=CVar.FindCVar("hdrn_safey");
 		rn_safeaspect=CVar.FindCVar("hdrn_safeaspect");
+		rn_bghealth=CVar.FindCVar("hdrn_bghealth");
+		rn_bgammo=CVar.FindCVar("hdrn_bgammo");
 	}
 	bool RN_Enabled(){
 		return !rn_enable||rn_enable.GetBool();
@@ -575,6 +579,15 @@ class HDRNStatusBar:HDStatusBar{
 
 		int cx,cy,cw,ch;
 		[cx,cy,cw,ch]=screen.GetClipRect();
+
+		//optional background, like the ammo panel's (mirrored: dark on the left)
+		if(rn_bghealth&&rn_bghealth.GetBool()){
+			bool hpnum=(rn_showhpnum&&rn_showhpnum.GetBool())||hd_debug;
+			double bgtop=bodytop-(hpnum?9.:3.);
+			double bgright=pos.x+dw+2;
+			if(!rn_showecg||rn_showecg.GetBool())bgright+=38*ds+4;
+			RN_GradBox(0,bgtop,bgright,-2-bgtop,alf,sflags,0.6,true);
+		}
 
 		//empty silhouette
 		DrawImage("HRNDOLLM",pos,fl,alf*0.5,scale:sc,col:color(255,22,22,22));

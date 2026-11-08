@@ -17,6 +17,8 @@
 - Grenade launcher mode: 40mm grenade icons (loaded + spares, bar above the
   loaded one, dotted red / white when empty). Hand grenades: count.
 - Option to always show the ammo and fire mode (not the weapon list).
+- Options for the background behind the ammo (on) and behind the health /
+  heart rate (off).
 - Empty spare mags are hidden by default (option to show them, as a plain
   dotted outline). A jammed ZM66 behaves like an empty one: shows on the
   next click and its chamber bar blinks white / red.
@@ -25,7 +27,7 @@
   the fire mode column.
 - Thunder Buster: battery as the mag (CELLS), detonator / scattershot modes.
   BFG: main battery as the mag, charge battery as a vertical bar,
-  chamber bar yellow when strapped to the harness.
+  chamber bar over both batteries, yellow when strapped to the harness.
 - Rocket launcher: "reserve | in the gun", amber chamber bar with HEAT
   loaded, rocket / grenade modes. Blooper and Brontornis: like the
   underbarrel launcher.

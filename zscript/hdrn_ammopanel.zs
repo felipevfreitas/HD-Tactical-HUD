@@ -80,6 +80,7 @@ extend class HDRNStatusBar{
 	bool rn_anobar;			//no chamber bar (cell weapons)
 	bool rn_aheat;			//rocket launcher: HEAT in the chamber
 	bool rn_aharness;		//BFG strapped to the harness: chamber bar yellow
+	bool rn_abarwide;		//chamber bar spans the mag and the battery bar (BFG)
 	transient cvar rn_apalways;
 	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
@@ -219,7 +220,7 @@ extend class HDRNStatusBar{
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
 		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;rn_aempty=false;
-		rn_asegs.clear();rn_aqueue.clear();rn_abat=-2;rn_anobar=false;rn_aheat=false;rn_aharness=false;
+		rn_asegs.clear();rn_aqueue.clear();rn_abat=-2;rn_anobar=false;rn_aheat=false;rn_aharness=false;rn_abarwide=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -395,6 +396,7 @@ extend class HDRNStatusBar{
 			//chamber bar: lit when there's something to fire, yellow on the harness
 			lch=(b>0||c>0)?2:0;
 			rn_aharness=!!(st&BFGF_STRAPPED);
+			rn_abarwide=true;
 			magcls="HDBattery";
 			rn_alabel="$HDRN_AP_CELLS";
 			rn_aempty=b<=0&&c<=0;
@@ -474,11 +476,11 @@ extend class HDRNStatusBar{
 	}
 
 	//horizontal gradient box: transparent on the left, darker to the right
-	void RN_GradBox(double x,double y,double w,double h,double alf,int fl,double maxa=0.6){
+	void RN_GradBox(double x,double y,double w,double h,double alf,int fl,double maxa=0.6,bool flip=false){
 		int strips=16;
 		double sw=w/strips;
 		for(int i=0;i<strips;i++){
-			double a=maxa*((i+1.)/strips);
+			double a=maxa*((flip?strips-i:i+1.)/strips);
 			fill(color(int(255*a*alf),20,23,30),x+i*sw,y,sw+0.05,h,fl);
 		}
 	}
@@ -634,7 +636,7 @@ extend class HDRNStatusBar{
 
 		//fixed-size background: contents that don't fit just spill out to the left
 		double boxw=46.;
-		RN_GradBox(boxr-boxw,top,boxw,boxh,a,fl);
+		if(!rn_bgammo||rn_bgammo.GetBool())RN_GradBox(boxr-boxw,top,boxw,boxh,a,fl);
 
 		//label
 		RN_TextRightAt(lbl,rx,top+2.5,lblS,Font.CR_WHITE,a,fl);
@@ -713,8 +715,10 @@ extend class HDRNStatusBar{
 
 		//vertical battery bar on the far right (Vulcanette, BFG's charge)
 		//(same height as the mag's inside: 1.5..11.5 units into the icon)
+		double batx=0;
 		if(rn_abat>-2.){
 			x-=3.;
+			batx=x;
 			double by=icony+1.,bh=11.,bw=2.;
 			color oc=color(int(255*a*0.9),235,235,235);
 			if(rn_abat<=0.)oc=rn_abat<0.
@@ -776,7 +780,9 @@ extend class HDRNStatusBar{
 				color chc=color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235);
 				if(rn_aharness)chc=color(int(255*a*(rn_achamber==2?1.:0.5)),240,200,40);
 				if(rn_ajam)chc=RN_BlinkPhase()?color(int(255*a),220,50,40):color(int(255*a),235,235,235);
-				fill(chc,x+0.5,icony-1.,6,0.8,fl);
+				//(BFG: over both batteries, the mag and the charge bar)
+				double cbw=rn_abarwide&&rn_abat>-2.?batx+2.-(x+0.5):6.;
+				fill(chc,x+0.5,icony-1.,cbw,0.8,fl);
 			}
 		}
 		//spares, right to left
