@@ -7,7 +7,8 @@
   the right (bar above it = round chambered), "+" when there are more, total
   mags; empty mag = dotted outline blinking red; dirty ZM66 mag = red stripes.
 - Shotguns: "reserve | side saddles + in the gun", split chamber bar (live /
-  anything chambered), red number when jammed.
+  anything chambered), red number when jammed. Double barrel: same layout,
+  bar split in half, one half per barrel.
 - Grenade launcher mode: loaded grenade + spares. Hand grenades: count.
 - Fire mode column next to it, with only the weapon's modes, stacked from the
   top (blanks at the bottom, with no background); smaller icons.

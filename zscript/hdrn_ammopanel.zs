@@ -58,6 +58,8 @@ extend class HDRNStatusBar{
 	int rn_afm[3];
 	int rn_afmsel;
 	bool rn_ahasfm;
+	bool rn_adouble;
+	int rn_achamber2;
 	Weapon rn_presprint;	//weapon held before sprinting
 
 
@@ -134,6 +136,7 @@ extend class HDRNStatusBar{
 			||w is "ZM66AssaultRifle"
 			||w is "LiberatorRifle"
 			||w is "Hunter"
+			||w is "Slayer"
 			||w is "HDGrenadeThrower"
 		);
 	}
@@ -143,7 +146,7 @@ extend class HDRNStatusBar{
 		rn_ahasfm=false;
 		rn_afm[0]=RN_FM_NONE;rn_afm[1]=RN_FM_NONE;rn_afm[2]=RN_FM_NONE;
 		rn_aspare.clear();
-		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;
+		rn_amore=false;rn_ajam=false;rn_apump=false;rn_acurdirty=false;rn_adouble=false;
 		int st=w.weaponstatus[0];
 
 		//hand grenades: just how many are left
@@ -171,6 +174,19 @@ extend class HDRNStatusBar{
 				if(st&HUNTF_CANFULLAUTO)RN_SetFM(RN_FM_AUTO,RN_FM_SEMI,RN_FM_PUMP,sel);
 				else RN_SetFM(RN_FM_NONE,RN_FM_SEMI,RN_FM_PUMP,sel);
 			}
+			return true;
+		}
+
+		//double barrel: one chamber per barrel, no fire modes
+		if(w is "Slayer"){
+			rn_akind=RN_AK_SHELLS;
+			rn_alabel="$HDRN_AP_SHELLS";
+			rn_adouble=true;
+			rn_achamber=clamp(w.weaponstatus[SLAYS_CHAMBER1],0,2);
+			rn_achamber2=clamp(w.weaponstatus[SLAYS_CHAMBER2],0,2);
+			rn_aingun=(rn_achamber==2?1:0)+(rn_achamber2==2?1:0);
+			rn_asad=clamp(w.weaponstatus[SHOTS_SIDESADDLE],0,12);
+			rn_ares=hpl.countinv("HDShellAmmo");
 			return true;
 		}
 
@@ -418,10 +434,19 @@ extend class HDRNStatusBar{
 			//chamber bar above the in-gun number: long part = live shell,
 			//short part = anything in the chamber (live or spent)
 			double bary=numy-2.2;
-			double longw=(win-1)*0.65,shortw=(win-1)*0.35-1;
-			double bx=rx-win+1;
-			fill(color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),bx,bary,longw,0.8,fl);
-			fill(color(int(255*a*(rn_achamber>=1?1.:0.22)),235,235,235),bx+longw+1,bary,shortw,0.8,fl);
+			if(rn_adouble){
+				//double barrel: one half per barrel (bright = live, dim = spent, faint = empty)
+				double barw=max(6.,win);
+				double hw=(barw-1)*0.5;
+				double bx=rx-barw;
+				fill(color(int(255*a*(rn_achamber==2?1.:rn_achamber==1?0.45:0.15)),235,235,235),bx,bary,hw,0.8,fl);
+				fill(color(int(255*a*(rn_achamber2==2?1.:rn_achamber2==1?0.45:0.15)),235,235,235),bx+hw+1,bary,hw,0.8,fl);
+			}else{
+				double longw=(win-1)*0.65,shortw=(win-1)*0.35-1;
+				double bx=rx-win+1;
+				fill(color(int(255*a*(rn_achamber==2?1.:0.22)),235,235,235),bx,bary,longw,0.8,fl);
+				fill(color(int(255*a*(rn_achamber>=1?1.:0.22)),235,235,235),bx+longw+1,bary,shortw,0.8,fl);
+			}
 
 			double x=rx-win-1.5;
 			double smy=bottom-pad-8.;
@@ -498,8 +523,14 @@ extend class HDRNStatusBar{
 			//slot number box
 			double sb=6.;
 			double sx=right-1-sb,sy=y+1;
-			fill(color(int(200*a),235,235,235),sx,sy,sb,sb,fl);
-			fill(color(int(255*a),20,23,30),sx+0.5,sy+0.5,sb-1,sb-1,fl);
+			//frame + interior side by side (not stacked), so nothing shows
+			//through while it fades out
+			color fc=color(int(200*a),235,235,235);
+			fill(fc,sx,sy,sb,0.5,fl);
+			fill(fc,sx,sy+sb-0.5,sb,0.5,fl);
+			fill(fc,sx,sy+0.5,0.5,sb-1,fl);
+			fill(fc,sx+sb-0.5,sy+0.5,0.5,sb-1,fl);
+			fill(color(int(200*a),20,23,30),sx+0.5,sy+0.5,sb-1,sb-1,fl);
 			string sn=FormatNumber(wp.slotnumber);
 			double sns=4./fh;
 			RN_TextAt(sn,sx+sb*0.5-RN_TextW(sn,sns)*0.5,sy+1,sns,Font.CR_WHITE,a,fl);
@@ -511,7 +542,7 @@ extend class HDRNStatusBar{
 			if(spr!=""){
 				//flat white silhouette (stencil)
 				DrawImage(spr,(ix,y+rowh*0.5),fl|DI_ITEM_RIGHT|DI_ITEM_VCENTER,a*(cur?1.:0.6),box:(16,6),
-					style:STYLE_Stencil,col:color(255,235,235,235));
+					style:STYLE_TranslucentStencil,col:color(255,235,235,235));
 				ix-=18;
 			}
 
