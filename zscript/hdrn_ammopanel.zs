@@ -671,7 +671,12 @@ extend class HDRNStatusBar{
 				//flat white silhouette (stencil)
 				DrawImage(spr,(ix,y+rowh*0.5),fl|DI_ITEM_RIGHT|DI_ITEM_VCENTER,a*(cur?1.:0.6),box:(16,6),
 					style:STYLE_TranslucentStencil,col:color(255,235,235,235));
-				ix-=18;
+				//the name goes right next to the sprite's real (fitted) width,
+				//same maths as the engine's box fit (shrinks, never grows)
+				vector2 tsz=TexMan.GetScaledSize(TexMan.CheckForTexture(spr,TexMan.Type_Any));
+				double dw=16.;
+				if(tsz.x>0&&tsz.y>0)dw=tsz.x*min(1.,min(16./tsz.x,6./tsz.y));
+				ix-=dw+2;
 			}
 
 			//name (+ how many, for grenades)
