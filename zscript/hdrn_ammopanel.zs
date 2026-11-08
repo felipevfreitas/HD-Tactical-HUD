@@ -16,15 +16,17 @@
 //   only the weapon's modes are drawn, missing ones stay blank.
 //
 // Shows instantly on inspect / reload / weapon switch (fire mode change:
-// only the fire mode column), fades out; firing keeps it up, and brings it
-// back (fading in) if it was fading out.
+// only the fire mode column), fades out after a fixed time; firing during
+// the fade-out brings it back to full and restarts the fade. HD's sprint /
+// jump / mantle "weapon" is ignored: the panel keeps the real weapon.
 // ------------------------------------------------------------
 extend class HDRNStatusBar{
 
 	enum HDRNPanelConsts{
-		RN_PFADE=18,		//fade-out tics
-		RN_PFADEIN=6,		//fade-in tics (when firing brings it back)
-		RN_FIREHOLD=50,		//how long firing keeps it up
+		RN_PFADE=10,		//fade-out tics (0.3 s)
+		RN_T_LIST=105,		//weapon list after a switch (3 s)
+		RN_T_SWITCH=150,	//ammo + fire mode after a switch / mode change (4.3 s)
+		RN_T_INSPECT=122,	//ammo + fire mode on inspect / reload (3.5 s)
 
 		RN_FM_NONE=0,
 		RN_FM_SEMI=1,
@@ -42,7 +44,6 @@ extend class HDRNStatusBar{
 	int rn_aptimer,rn_fmtimer,rn_wltimer;
 	double rn_apalf,rn_fmalf,rn_wlalf;
 	int rn_lastinspect;
-	weapon rn_lastready;
 
 	//panel contents (rebuilt every frame)
 	int rn_akind;
@@ -60,61 +61,64 @@ extend class HDRNStatusBar{
 	bool rn_ahasfm;
 	bool rn_adouble;
 	int rn_achamber2;
-	Weapon rn_presprint;	//weapon held before sprinting
+	hdweapon rn_realwep;	//last real weapon (never the sprint one)
 
 
 	// ------------------------------------------------------------
 	// visibility
 	// ------------------------------------------------------------
-	void RN_PanelShow(bool ammo,bool fm,bool list){
-		int len=int(clamp(rn_inspecttime?rn_inspecttime.GetFloat():3.,0.5,30.)*TICRATE);
-		if(ammo){rn_aptimer=max(rn_aptimer,len);rn_apalf=1;}
-		if(fm){rn_fmtimer=max(rn_fmtimer,len);rn_fmalf=1;}
-		if(list){rn_wltimer=max(rn_wltimer,len);rn_wlalf=1;}
+	void RN_PanelShow(int ammo,int fm,int list){
+		if(ammo>0){rn_aptimer=max(rn_aptimer,ammo);rn_apalf=1;}
+		if(fm>0){rn_fmtimer=max(rn_fmtimer,fm);rn_fmalf=1;}
+		if(list>0){rn_wltimer=max(rn_wltimer,list);rn_wlalf=1;}
+	}
+
+	//the weapon the panel is about: the one being switched to, or the one
+	//in hand - but never HD's sprint/jump/mantle "weapon" (NullWeapon):
+	//while running, the panel keeps showing the weapon from before
+	hdweapon RN_DispWeapon(){
+		if(rn_realwep&&rn_realwep.owner==cplayer.mo)return rn_realwep;
+		let rw=hdweapon(cplayer.readyweapon);
+		if(rw&&rw is "NullWeapon")return null;
+		return rw;
 	}
 
 	void RN_PanelTick(){
-		//follow the existing triggers (inspect key, hold, reload, pump...)
-		if(inspecttimer>rn_lastinspect+1)RN_PanelShow(true,!rn_inspectweaponly,false);
-		if(inspecttimer>0){
-			rn_aptimer=max(rn_aptimer,inspecttimer);
-			if(!rn_inspectweaponly)rn_fmtimer=max(rn_fmtimer,inspecttimer);
+		//follow the existing triggers (inspect key, hold, reload, pump...).
+		//A quick look (pump) lasts as long as the old timer says, a full
+		//inspect always RN_T_INSPECT; holding the key/reload keeps it full
+		if(inspecttimer>0&&(inspecttimer>rn_lastinspect+1||inspecttimer>=rn_lastinspect)){
+			if(rn_inspectweaponly)RN_PanelShow(inspecttimer,0,0);
+			else RN_PanelShow(RN_T_INSPECT,RN_T_INSPECT,0);
 		}
 		rn_lastinspect=inspecttimer;
 
 		//fire mode changed: only the fire mode column
 		//(the status bar sets it to 35 and already counted it down once this tic)
-		if(rn_modeflash==34)RN_PanelShow(false,true,false);
+		if(rn_modeflash==34)RN_PanelShow(0,RN_T_SWITCH,0);
 
-		//weapon switch: everything
-		//(going into a sprint, and back out to the same weapon, is ignored)
-		let rw=cplayer.readyweapon;
+		//weapon switch: everything. Only a change of the real weapon counts,
+		//so going into a sprint/jump/mantle and back out is ignored
 		let pw=cplayer.pendingweapon;
-		bool switching=pw!=WP_NOCHANGE;
-		if(rw!=rn_lastready||switching){
-			let target=switching?pw:rw;
-			bool sprint=
-				(target&&target is "NullWeapon")
-				||(rw&&rw is "NullWeapon"&&target==rn_presprint)
-				||(rn_lastready&&rn_lastready is "NullWeapon"&&target==rn_presprint);
-			if(rw&&rw is "NullWeapon"){
-				if(rn_lastready&&!(rn_lastready is "NullWeapon"))rn_presprint=rn_lastready;
-			}else if(!switching)rn_presprint=null;
-			if(!sprint&&(rw!=rn_lastready||rn_wltimer<=0))RN_PanelShow(true,true,true);
-			rn_lastready=rw;
+		weapon target=pw!=WP_NOCHANGE?pw:cplayer.readyweapon;
+		let ht=hdweapon(target);
+		if(ht&&!(ht is "NullWeapon")&&ht!=rn_realwep){
+			if(rn_realwep)RN_PanelShow(RN_T_SWITCH,RN_T_SWITCH,RN_T_LIST);
+			rn_realwep=ht;
 		}
 
-		//firing keeps whatever is visible up (and brings back a fading one)
+		//firing during the fade-out brings it back to full and restarts the fade
 		if(cplayer.cmd.buttons&BT_ATTACK){
-			if(rn_apalf>0)rn_aptimer=max(rn_aptimer,RN_FIREHOLD);
-			if(rn_fmalf>0)rn_fmtimer=max(rn_fmtimer,RN_FIREHOLD);
+			if(rn_apalf>0)rn_apalf=1;
+			if(rn_fmalf>0)rn_fmalf=1;
 		}
 
-		if(rn_aptimer>0){rn_aptimer--;rn_apalf=min(1.,rn_apalf+1./RN_PFADEIN);}
+		//shown at once (no fade-in), then a short fade-out
+		if(rn_aptimer>0){rn_aptimer--;rn_apalf=1;}
 		else rn_apalf=max(0.,rn_apalf-1./RN_PFADE);
-		if(rn_fmtimer>0){rn_fmtimer--;rn_fmalf=min(1.,rn_fmalf+1./RN_PFADEIN);}
+		if(rn_fmtimer>0){rn_fmtimer--;rn_fmalf=1;}
 		else rn_fmalf=max(0.,rn_fmalf-1./RN_PFADE);
-		if(rn_wltimer>0){rn_wltimer--;rn_wlalf=min(1.,rn_wlalf+1./RN_PFADEIN);}
+		if(rn_wltimer>0){rn_wltimer--;rn_wlalf=1;}
 		else rn_wlalf=max(0.,rn_wlalf-1./RN_PFADE);
 	}
 
@@ -346,7 +350,7 @@ extend class HDRNStatusBar{
 	// draw
 	// ------------------------------------------------------------
 	void RN_DrawAmmoPanel2(){
-		let w=hdweapon(cplayer.readyweapon);
+		let w=RN_DispWeapon();
 		double maxalf=max(rn_apalf,max(rn_fmalf,rn_wlalf));
 		if(maxalf<=0.)return;
 		bool have=RN_BuildPanel(w);
@@ -515,8 +519,7 @@ extend class HDRNStatusBar{
 			let wp=list[i];
 			double y=bottomy-(n-i)*(rowh+gap);
 			//while switching, only the weapon being switched to is highlighted
-			bool cur=cplayer.pendingweapon!=WP_NOCHANGE?
-				wp==cplayer.pendingweapon:wp==cplayer.readyweapon;
+			bool cur=wp==rn_realwep;
 			if(cur)fill(color(int(170*a),90,95,105),right-roww,y,roww,rowh,fl);
 			else RN_GradBox(right-roww,y,roww,rowh,a,fl,0.5);
 
