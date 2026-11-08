@@ -24,6 +24,7 @@ extend class HDRNStatusBar{
 
 	enum HDRNPanelConsts{
 		RN_PFADE=10,		//fade-out tics (0.3 s)
+		RN_WLFADEIN=6,		//weapon list fade-in tics (0.17 s), like Insurgency
 		RN_T_LIST=105,		//weapon list after a switch (3 s)
 		RN_T_SWITCH=150,	//ammo + fire mode after a switch / mode change (4.3 s)
 		RN_T_INSPECT=122,	//ammo + fire mode on inspect / reload (3.5 s)
@@ -70,7 +71,7 @@ extend class HDRNStatusBar{
 	void RN_PanelShow(int ammo,int fm,int list){
 		if(ammo>0){rn_aptimer=max(rn_aptimer,ammo);rn_apalf=1;}
 		if(fm>0){rn_fmtimer=max(rn_fmtimer,fm);rn_fmalf=1;}
-		if(list>0){rn_wltimer=max(rn_wltimer,list);rn_wlalf=1;}
+		if(list>0)rn_wltimer=max(rn_wltimer,list);	//fades in (see RN_PanelTick)
 	}
 
 	//the weapon the panel is about: the one being switched to, or the one
@@ -113,12 +114,12 @@ extend class HDRNStatusBar{
 			if(rn_fmalf>0)rn_fmalf=1;
 		}
 
-		//shown at once (no fade-in), then a short fade-out
+		//ammo/fire mode shown at once, the weapon list fades in; then a short fade-out
 		if(rn_aptimer>0){rn_aptimer--;rn_apalf=1;}
 		else rn_apalf=max(0.,rn_apalf-1./RN_PFADE);
 		if(rn_fmtimer>0){rn_fmtimer--;rn_fmalf=1;}
 		else rn_fmalf=max(0.,rn_fmalf-1./RN_PFADE);
-		if(rn_wltimer>0){rn_wltimer--;rn_wlalf=1;}
+		if(rn_wltimer>0){rn_wltimer--;rn_wlalf=min(1.,rn_wlalf+1./RN_WLFADEIN);}
 		else rn_wlalf=max(0.,rn_wlalf-1./RN_PFADE);
 	}
 
