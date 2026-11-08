@@ -390,8 +390,8 @@ extend class HDRNStatusBar{
 		}else if(w is "Lumberjack"){
 			//chainsaw: battery in the saw as the mag, spare batteries as the spares
 			int b=w.weaponstatus[CSAWS_BATTERY];
-			lcnt=b<0?-1:b;lcap=20;lch=0;ldirty=false;
-			rn_anobar=true;
+			//the bar above marks which battery is the one in the saw (dims when it's drained)
+			lcnt=b<0?-1:b;lcap=20;lch=b>0?2:0;ldirty=false;
 			magcls="HDBattery";
 			rn_alabel="$HDRN_AP_CELLS";
 			rn_aempty=b<=0;
